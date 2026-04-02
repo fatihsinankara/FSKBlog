@@ -17,7 +17,8 @@ class PostController extends Controller
 {
     public function index(): Response
     {
-        $posts = Post::with(['category', 'tags'])
+        $posts = Post::with(['category:id,name,slug', 'tags:id,name,slug'])
+            ->select(['id', 'title', 'slug', 'status', 'category_id', 'user_id', 'featured', 'published_at', 'views', 'created_at'])
             ->latest()
             ->paginate(15);
 
@@ -30,26 +31,26 @@ class PostController extends Controller
     {
         return Inertia::render('Admin/Posts/Create', [
             'categories' => Category::select('id', 'name')->get(),
-            'tags'       => Tag::select('id', 'name')->get(),
+            'tags' => Tag::select('id', 'name')->get(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'title'                => ['required', 'string', 'max:255'],
-            'body'                 => ['required', 'string'],
-            'excerpt'              => ['nullable', 'string', 'max:500'],
-            'status'               => ['required', 'in:draft,published'],
-            'category_id'          => ['nullable', 'exists:categories,id'],
-            'tag_ids'              => ['nullable', 'array'],
-            'tag_ids.*'            => ['exists:tags,id'],
-            'featured_image'       => ['nullable', 'image', 'max:4096'],
-            'featured_image_alt'   => ['nullable', 'string', 'max:255'],
-            'meta_title'           => ['nullable', 'string', 'max:255'],
-            'meta_description'     => ['nullable', 'string', 'max:500'],
-            'featured'             => ['boolean'],
-            'published_at'         => ['nullable', 'date'],
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string'],
+            'excerpt' => ['nullable', 'string', 'max:500'],
+            'status' => ['required', 'in:draft,published'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['exists:tags,id'],
+            'featured_image' => ['nullable', 'image', 'max:4096'],
+            'featured_image_alt' => ['nullable', 'string', 'max:255'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string', 'max:500'],
+            'featured' => ['boolean'],
+            'published_at' => ['nullable', 'date'],
         ]);
 
         if ($request->hasFile('featured_image')) {
@@ -72,28 +73,28 @@ class PostController extends Controller
     public function edit(Post $post): Response
     {
         return Inertia::render('Admin/Posts/Edit', [
-            'post'       => $post->load('tags'),
+            'post' => $post->load('tags'),
             'categories' => Category::select('id', 'name')->get(),
-            'tags'       => Tag::select('id', 'name')->get(),
+            'tags' => Tag::select('id', 'name')->get(),
         ]);
     }
 
     public function update(Request $request, Post $post): RedirectResponse
     {
         $validated = $request->validate([
-            'title'                => ['required', 'string', 'max:255'],
-            'body'                 => ['required', 'string'],
-            'excerpt'              => ['nullable', 'string', 'max:500'],
-            'status'               => ['required', 'in:draft,published'],
-            'category_id'          => ['nullable', 'exists:categories,id'],
-            'tag_ids'              => ['nullable', 'array'],
-            'tag_ids.*'            => ['exists:tags,id'],
-            'featured_image'       => ['nullable', 'image', 'max:4096'],
-            'featured_image_alt'   => ['nullable', 'string', 'max:255'],
-            'meta_title'           => ['nullable', 'string', 'max:255'],
-            'meta_description'     => ['nullable', 'string', 'max:500'],
-            'featured'             => ['boolean'],
-            'published_at'         => ['nullable', 'date'],
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string'],
+            'excerpt' => ['nullable', 'string', 'max:500'],
+            'status' => ['required', 'in:draft,published'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['exists:tags,id'],
+            'featured_image' => ['nullable', 'image', 'max:4096'],
+            'featured_image_alt' => ['nullable', 'string', 'max:255'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string', 'max:500'],
+            'featured' => ['boolean'],
+            'published_at' => ['nullable', 'date'],
         ]);
 
         if ($request->hasFile('featured_image')) {
@@ -104,7 +105,7 @@ class PostController extends Controller
                 ->store('posts/images', 'public');
         }
 
-        if ($validated['status'] === 'published' && empty($validated['published_at']) && !$post->published_at) {
+        if ($validated['status'] === 'published' && empty($validated['published_at']) && ! $post->published_at) {
             $validated['published_at'] = now();
         }
 

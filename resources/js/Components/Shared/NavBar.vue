@@ -10,6 +10,7 @@ const mobileOpen = ref(false);
 const searchOpen = ref(false);
 
 const navCategories = computed(() => page.props.nav?.categories ?? []);
+const isAdmin = computed(() => Boolean(page.props.auth.user?.is_admin));
 </script>
 
 <template>
@@ -51,7 +52,7 @@ const navCategories = computed(() => page.props.nav?.categories ?? []);
                 <DarkModeToggle />
 
                 <Link
-                    v-if="page.props.auth.user"
+                    v-if="isAdmin"
                     :href="route('admin.dashboard')"
                     class="hidden md:inline-flex ml-1 px-3 py-1.5 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
                 >
@@ -73,6 +74,7 @@ const navCategories = computed(() => page.props.nav?.categories ?? []);
             <template v-for="cat in navCategories" :key="cat.id">
                 <Link :href="route('categories.show', cat.slug)" class="block px-3 py-2 text-sm rounded-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800">{{ cat.name }}</Link>
             </template>
+            <Link v-if="isAdmin" :href="route('admin.dashboard')" class="block px-3 py-2 text-sm rounded-md text-indigo-600 dark:text-indigo-400 hover:bg-neutral-100 dark:hover:bg-neutral-800">Admin</Link>
         </div>
     </header>
 

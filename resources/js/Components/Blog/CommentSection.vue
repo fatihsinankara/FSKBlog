@@ -1,25 +1,30 @@
 <script setup>
+import { computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { MessageCircle, Send } from 'lucide-vue-next';
+import Pagination from '@/Components/Shared/Pagination.vue';
 
 const props = defineProps({
     post: Object,
-    comments: Array,
 });
 
 const page = usePage();
 const user = page.props.auth.user;
+const isAdmin = computed(() => Boolean(user?.is_admin));
+const comments = computed(() => props.post.comments?.data ?? []);
+const totalComments = computed(() => props.post.comments?.total ?? comments.value.length);
 
 const form = useForm({
     body:        '',
     guest_name:  '',
     guest_email: '',
+    website:     '',
 });
 
 function submit() {
     form.post(route('comments.store', props.post.id), {
         preserveScroll: true,
-        onSuccess: () => form.reset(),
+        onSuccess: () => form.reset('body', 'guest_name', 'guest_email', 'website'),
     });
 }
 
@@ -35,7 +40,7 @@ function formatDate(date) {
         <h2 class="text-xl font-semibold mb-8 flex items-center gap-2">
             <MessageCircle :size="20" class="text-indigo-500" />
             Yorumlar
-            <span v-if="comments.length" class="text-sm font-normal text-neutral-500">({{ comments.length }})</span>
+            <span v-if="totalComments" class="text-sm font-normal text-neutral-500">({{ totalComments }})</span>
         </h2>
 
         <!-- Comments list -->
@@ -67,6 +72,15 @@ function formatDate(date) {
             <h3 class="text-sm font-semibold mb-4 text-neutral-900 dark:text-white">Yorum Yaz</h3>
 
             <form @submit.prevent="submit" class="space-y-4">
+                <input
+                    v-model="form.website"
+                    type="text"
+                    tabindex="-1"
+                    autocomplete="off"
+                    class="hidden"
+                    aria-hidden="true"
+                />
+
                 <!-- Guest fields -->
                 <template v-if="!user">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -112,7 +126,7 @@ function formatDate(date) {
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <p v-if="!user" class="text-xs text-neutral-400">
+                    <p v-if="!isAdmin" class="text-xs text-neutral-400">
                         Yorumunuz admin onayından sonra yayınlanacak.
                     </p>
                     <div v-else />
@@ -127,5 +141,7 @@ function formatDate(date) {
                 </div>
             </form>
         </div>
+
+        <Pagination v-if="post.comments?.links" :links="post.comments.links" />
     </section>
 </template>

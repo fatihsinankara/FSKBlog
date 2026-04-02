@@ -11,7 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('posts', function (Blueprint $table) {
+        $supportsFullText = Schema::getConnection()->getDriverName() !== 'sqlite';
+
+        Schema::create('posts', function (Blueprint $table) use ($supportsFullText) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
@@ -31,7 +33,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'published_at']);
-            $table->fullText(['title', 'body']);
+
+            if ($supportsFullText) {
+                $table->fullText(['title', 'body']);
+            }
         });
     }
 

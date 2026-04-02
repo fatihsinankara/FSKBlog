@@ -10,10 +10,19 @@ const emit = defineEmits(['update:modelValue']);
 
 const mode = ref('split');
 
+function escapeHtml(value) {
+    return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
 const rendered = computed(() => {
     if (!props.modelValue) return '<p class="text-neutral-400 text-sm italic">Önizleme burada görünecek...</p>';
 
-    const html = props.modelValue
+    const html = escapeHtml(props.modelValue)
         .replace(/^#{6}\s(.+)/gm, '<h6>$1</h6>')
         .replace(/^#{5}\s(.+)/gm, '<h5>$1</h5>')
         .replace(/^#{4}\s(.+)/gm, '<h4>$1</h4>')
@@ -26,7 +35,7 @@ const rendered = computed(() => {
         .replace(/^- (.+)/gm, '<li>$1</li>')
         .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
         .replace(/\n\n/g, '</p><p>')
-        .replace(/^(?!<[h1-6ul])/gm, '');
+        .replace(/^(?!<[h1-6upc])/gm, '');
 
     return html;
 });

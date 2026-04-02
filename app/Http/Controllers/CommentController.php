@@ -5,13 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CommentController extends Controller
 {
     public function store(Request $request, Post $post): RedirectResponse
     {
+        if (filled($request->input('website'))) {
+            throw ValidationException::withMessages([
+                'body' => 'Yorum gönderilemedi.',
+            ]);
+        }
+
         $rules = [
             'body' => ['required', 'string', 'min:3', 'max:2000'],
+            'website' => ['nullable', 'max:0'],
         ];
 
         if (!$request->user()) {
@@ -26,10 +34,10 @@ class CommentController extends Controller
             'user_id'     => $request->user()?->id,
             'guest_name'  => $validated['guest_name'] ?? null,
             'guest_email' => $validated['guest_email'] ?? null,
-            'is_approved' => (bool) $request->user(),
+            'is_approved' => (bool) $request->user()?->is_admin,
         ]);
 
-        $message = $request->user()
+        $message = $request->user()?->is_admin
             ? 'Yorumunuz eklendi.'
             : 'Yorumunuz onay bekliyor.';
 

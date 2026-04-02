@@ -15,20 +15,20 @@ function formatDate(date) {
 </script>
 
 <template>
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500 dark:text-neutral-400">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-[0.72rem] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">
         <Link
             v-if="showCategory && post.category"
             :href="route('categories.show', post.category.slug)"
-            class="font-medium transition-colors"
-            :style="{ color: post.category.color }"
+            class="inline-flex items-center gap-2 font-semibold transition-colors"
         >
-            {{ post.category.name }}
+            <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: post.category.color }" />
+            <span :style="{ color: post.category.color }">{{ post.category.name }}</span>
         </Link>
-        <span v-if="post.published_at" class="flex items-center gap-1">
+        <span v-if="post.published_at" class="flex items-center gap-1.5">
             <Calendar :size="12" />
             {{ formatDate(post.published_at) }}
         </span>
-        <span class="flex items-center gap-1">
+        <span class="flex items-center gap-1.5">
             <Clock :size="12" />
             {{ post.reading_time_text || post.reading_time + ' dk' }}
         </span>
