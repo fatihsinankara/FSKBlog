@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import DarkModeToggle from './DarkModeToggle.vue';
 import SearchModal from './SearchModal.vue';
@@ -8,6 +8,8 @@ import { Search, Menu, X } from 'lucide-vue-next';
 const page = usePage();
 const mobileOpen = ref(false);
 const searchOpen = ref(false);
+
+const navCategories = computed(() => page.props.nav?.categories ?? []);
 </script>
 
 <template>
@@ -26,7 +28,7 @@ const searchOpen = ref(false);
                 <Link :href="route('categories.index')" class="px-3 py-1.5 text-sm rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
                     Kategoriler
                 </Link>
-                <template v-for="cat in page.props.nav.categories" :key="cat.id">
+                <template v-for="cat in navCategories" :key="cat.id">
                     <Link
                         :href="route('categories.show', cat.slug)"
                         class="px-3 py-1.5 text-sm rounded-md transition-colors"
@@ -68,7 +70,7 @@ const searchOpen = ref(false);
         <div v-if="mobileOpen" class="md:hidden border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 space-y-1">
             <Link :href="route('home')" class="block px-3 py-2 text-sm rounded-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800">Anasayfa</Link>
             <Link :href="route('categories.index')" class="block px-3 py-2 text-sm rounded-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800">Kategoriler</Link>
-            <template v-for="cat in page.props.nav.categories" :key="cat.id">
+            <template v-for="cat in navCategories" :key="cat.id">
                 <Link :href="route('categories.show', cat.slug)" class="block px-3 py-2 text-sm rounded-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800">{{ cat.name }}</Link>
             </template>
         </div>

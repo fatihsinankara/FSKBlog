@@ -34,6 +34,8 @@ class PostController extends Controller
             ->with(['category', 'tags', 'user', 'comments' => fn ($q) => $q->approved()->latest()])
             ->firstOrFail();
 
+        $post->append('rendered_body');
+
         $post->increment('views');
 
         $related = Post::published()

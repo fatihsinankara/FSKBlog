@@ -13,6 +13,8 @@ class Comment extends Model
         'post_id', 'user_id', 'guest_name', 'guest_email', 'body', 'is_approved',
     ];
 
+    protected $appends = ['author_name'];
+
     protected function casts(): array
     {
         return [

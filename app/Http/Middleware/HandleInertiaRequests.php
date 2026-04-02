@@ -29,7 +29,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'nav' => [
                 'categories' => fn () => Cache::remember('nav.categories', 3600,
-                    fn () => Category::select('id', 'name', 'slug', 'color')->get()
+                    fn () => Category::select('id', 'name', 'slug', 'color')->get()->toArray()
                 ),
             ],
         ];

@@ -21,6 +21,8 @@ class Post extends Model
         'featured', 'category_id', 'user_id',
     ];
 
+    protected $appends = ['featured_image_url', 'reading_time_text'];
+
     protected function casts(): array
     {
         return [
@@ -83,7 +85,7 @@ class Post extends Model
     protected function featuredImageUrl(): Attribute
     {
         return Attribute::get(function () {
-            return $this->featured_image ? Storage::url($this->featured_image) : null;
+            return $this->featured_image ? Storage::disk('public')->url($this->featured_image) : null;
         });
     }
 
