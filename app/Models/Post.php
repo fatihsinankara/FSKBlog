@@ -49,12 +49,31 @@ class Post extends Model
         });
 
         static::saved(function (Post $post) {
-            Cache::forget("post.{$post->id}.rendered");
+            static::flushFrontendCaches($post);
         });
 
         static::deleted(function (Post $post) {
-            Cache::forget("post.{$post->id}.rendered");
+            static::flushFrontendCaches($post);
         });
+    }
+
+    public static function indexCacheVersion(): int
+    {
+        return static::contentCacheVersion();
+    }
+
+    public static function contentCacheVersion(): int
+    {
+        return (int) Cache::get('blog.content.version', 1);
+    }
+
+    public static function bumpContentCacheVersion(): int
+    {
+        $nextVersion = static::contentCacheVersion() + 1;
+
+        Cache::forever('blog.content.version', $nextVersion);
+
+        return $nextVersion;
     }
 
     protected static function uniqueSlug(string $slug): string
@@ -68,6 +87,12 @@ class Post extends Model
         }
 
         return $slug;
+    }
+
+    protected static function flushFrontendCaches(Post $post): void
+    {
+        Cache::forget("post.{$post->id}.rendered");
+        static::bumpContentCacheVersion();
     }
 
     // --- Accessors ---

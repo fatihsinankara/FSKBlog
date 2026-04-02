@@ -41,6 +41,14 @@ class Tag extends Model
                 $tag->slug = static::uniqueSlug(Str::slug($tag->name), $tag->id);
             }
         });
+
+        static::saved(function () {
+            Post::bumpContentCacheVersion();
+        });
+
+        static::deleted(function () {
+            Post::bumpContentCacheVersion();
+        });
     }
 
     public function posts(): BelongsToMany

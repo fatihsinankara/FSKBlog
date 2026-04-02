@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class Category extends Model
@@ -40,6 +41,16 @@ class Category extends Model
             if ($category->isDirty('name') && !$category->isDirty('slug')) {
                 $category->slug = static::uniqueSlug(Str::slug($category->name), $category->id);
             }
+        });
+
+        static::saved(function () {
+            Cache::forget('nav.categories');
+            Post::bumpContentCacheVersion();
+        });
+
+        static::deleted(function () {
+            Cache::forget('nav.categories');
+            Post::bumpContentCacheVersion();
         });
     }
 
