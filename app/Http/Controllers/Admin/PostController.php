@@ -1,0 +1,127 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\Post;
+use App\Models\Tag;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class PostController extends Controller
+{
+    public function index(): Response
+    {
+        $posts = Post::with(['category', 'tags'])
+            ->latest()
+            ->paginate(15);
+
+        return Inertia::render('Admin/Posts/Index', [
+            'posts' => $posts,
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Admin/Posts/Create', [
+            'categories' => Category::select('id', 'name')->get(),
+            'tags'       => Tag::select('id', 'name')->get(),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title'                => ['required', 'string', 'max:255'],
+            'body'                 => ['required', 'string'],
+            'excerpt'              => ['nullable', 'string', 'max:500'],
+            'status'               => ['required', 'in:draft,published'],
+            'category_id'          => ['nullable', 'exists:categories,id'],
+            'tag_ids'              => ['nullable', 'array'],
+            'tag_ids.*'            => ['exists:tags,id'],
+            'featured_image'       => ['nullable', 'image', 'max:4096'],
+            'featured_image_alt'   => ['nullable', 'string', 'max:255'],
+            'meta_title'           => ['nullable', 'string', 'max:255'],
+            'meta_description'     => ['nullable', 'string', 'max:500'],
+            'featured'             => ['boolean'],
+            'published_at'         => ['nullable', 'date'],
+        ]);
+
+        if ($request->hasFile('featured_image')) {
+            $validated['featured_image'] = $request->file('featured_image')
+                ->store('posts/images', 'public');
+        }
+
+        if ($validated['status'] === 'published' && empty($validated['published_at'])) {
+            $validated['published_at'] = now();
+        }
+
+        $post = Post::create(array_merge($validated, ['user_id' => $request->user()->id]));
+        $post->tags()->sync($request->input('tag_ids', []));
+
+        Cache::forget('nav.categories');
+
+        return redirect()->route('admin.posts.index')->with('message', 'Yazı oluşturuldu.');
+    }
+
+    public function edit(Post $post): Response
+    {
+        return Inertia::render('Admin/Posts/Edit', [
+            'post'       => $post->load('tags'),
+            'categories' => Category::select('id', 'name')->get(),
+            'tags'       => Tag::select('id', 'name')->get(),
+        ]);
+    }
+
+    public function update(Request $request, Post $post): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title'                => ['required', 'string', 'max:255'],
+            'body'                 => ['required', 'string'],
+            'excerpt'              => ['nullable', 'string', 'max:500'],
+            'status'               => ['required', 'in:draft,published'],
+            'category_id'          => ['nullable', 'exists:categories,id'],
+            'tag_ids'              => ['nullable', 'array'],
+            'tag_ids.*'            => ['exists:tags,id'],
+            'featured_image'       => ['nullable', 'image', 'max:4096'],
+            'featured_image_alt'   => ['nullable', 'string', 'max:255'],
+            'meta_title'           => ['nullable', 'string', 'max:255'],
+            'meta_description'     => ['nullable', 'string', 'max:500'],
+            'featured'             => ['boolean'],
+            'published_at'         => ['nullable', 'date'],
+        ]);
+
+        if ($request->hasFile('featured_image')) {
+            if ($post->featured_image) {
+                Storage::disk('public')->delete($post->featured_image);
+            }
+            $validated['featured_image'] = $request->file('featured_image')
+                ->store('posts/images', 'public');
+        }
+
+        if ($validated['status'] === 'published' && empty($validated['published_at']) && !$post->published_at) {
+            $validated['published_at'] = now();
+        }
+
+        $post->update($validated);
+        $post->tags()->sync($request->input('tag_ids', []));
+
+        return redirect()->route('admin.posts.index')->with('message', 'Yazı güncellendi.');
+    }
+
+    public function destroy(Post $post): RedirectResponse
+    {
+        if ($post->featured_image) {
+            Storage::disk('public')->delete($post->featured_image);
+        }
+
+        $post->delete();
+
+        return redirect()->route('admin.posts.index')->with('message', 'Yazı silindi.');
+    }
+}
