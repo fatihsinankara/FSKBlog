@@ -37,6 +37,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('posts', Admin\PostController::class)->except(['show']);
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);
     Route::resource('tags', Admin\TagController::class)->only(['index', 'store', 'destroy']);
+    Route::get('cache', [Admin\CacheController::class, 'index'])->name('cache.index');
+    Route::post('cache/clear', [Admin\CacheController::class, 'clear'])->name('cache.clear');
 
     Route::get('comments', [Admin\CommentController::class, 'index'])->name('comments.index');
     Route::patch('comments/{comment}/approve', [Admin\CommentController::class, 'approve'])->name('comments.approve');

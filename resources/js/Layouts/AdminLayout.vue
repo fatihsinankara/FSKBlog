@@ -4,7 +4,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import FlashMessage from '@/Components/Shared/FlashMessage.vue';
 import {
     LayoutDashboard, FileText, Tag, FolderOpen,
-    MessageSquare, LogOut, Menu, X, ChevronRight
+    MessageSquare, Database, LogOut, Menu, X, ChevronRight
 } from 'lucide-vue-next';
 
 const sidebarOpen = ref(false);
@@ -16,6 +16,7 @@ const navItems = [
     { label: 'Kategoriler', icon: FolderOpen, route: 'admin.categories.index' },
     { label: 'Taglar', icon: Tag, route: 'admin.tags.index' },
     { label: 'Yorumlar', icon: MessageSquare, route: 'admin.comments.index' },
+    { label: 'Cache', icon: Database, route: 'admin.cache.index' },
 ];
 
 function isActive(routeName) {
