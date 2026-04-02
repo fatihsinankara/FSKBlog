@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Post;
-use Illuminate\Support\Facades\Cache;
+use App\Support\BlogContentCache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -12,33 +12,18 @@ class PostController extends Controller
 {
     public function index(): Response
     {
-        $cacheKey = sprintf(
-            'posts.index.payload.v%s.page.%s',
-            Post::indexCacheVersion(),
-            request()->integer('page', 1)
-        );
+        $page = request()->integer('page', 1);
+        $cache = app(BlogContentCache::class);
 
-        $data = Cache::remember($cacheKey, 300, function () {
+        $data = $cache->remember('posts.index', ['page', $page], 300, function () {
             $featured = Post::published()->featured()
-                ->select([
-                    'id',
-                    'title',
-                    'slug',
-                    'excerpt',
-                    'featured_image',
-                    'featured_image_alt',
-                    'category_id',
-                    'status',
-                    'published_at',
-                    'reading_time',
-                    'featured',
-                ])
+                ->select(BlogContentCache::FEATURED_POST_COLUMNS)
                 ->with(['category:id,name,slug,color', 'tags:id,name,slug'])
                 ->latest('published_at')
                 ->first();
 
             $posts = Post::published()
-                ->select(['id', 'title', 'slug', 'excerpt', 'featured_image', 'featured_image_alt', 'category_id', 'status', 'published_at', 'reading_time'])
+                ->select(BlogContentCache::POST_LISTING_COLUMNS)
                 ->with(['category:id,name,slug,color', 'tags:id,name,slug'])
                 ->latest('published_at')
                 ->when($featured, fn ($q) => $q->where('id', '!=', $featured->id))
@@ -56,13 +41,9 @@ class PostController extends Controller
 
     public function show(string $slug): Response
     {
-        $cacheKey = sprintf(
-            'post.show.payload.v%s.%s',
-            Post::contentCacheVersion(),
-            $slug
-        );
+        $cache = app(BlogContentCache::class);
 
-        $post = Cache::remember($cacheKey, 600, function () use ($slug) {
+        $post = $cache->remember('post.show', [$slug], 600, function () use ($slug) {
             $post = Post::published()
                 ->where('slug', $slug)
                 ->with(['category:id,name,slug,color', 'tags:id,name,slug', 'user:id,name'])
@@ -109,16 +90,12 @@ class PostController extends Controller
     public function search(): Response
     {
         $term = request()->input('q', '');
-        $cacheKey = sprintf(
-            'posts.search.payload.v%s.q.%s.page.%s',
-            Post::contentCacheVersion(),
-            md5($term),
-            request()->integer('page', 1)
-        );
+        $page = request()->integer('page', 1);
+        $cache = app(BlogContentCache::class);
 
-        $data = Cache::remember($cacheKey, 300, function () use ($term) {
+        $data = $cache->remember('posts.search', ['q', md5($term), 'page', $page], 300, function () use ($term) {
             $query = Post::published()
-                ->select(['id', 'title', 'slug', 'excerpt', 'featured_image', 'featured_image_alt', 'category_id', 'status', 'published_at', 'reading_time'])
+                ->select(BlogContentCache::POST_LISTING_COLUMNS)
                 ->with(['category:id,name,slug,color', 'tags:id,name,slug']);
 
             $posts = ($term ? $query->search($term) : $query->latest('published_at'))

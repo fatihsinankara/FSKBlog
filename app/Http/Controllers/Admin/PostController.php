@@ -95,6 +95,7 @@ class PostController extends Controller
             'meta_description' => ['nullable', 'string', 'max:500'],
             'featured' => ['boolean'],
             'published_at' => ['nullable', 'date'],
+            'remove_featured_image' => ['nullable', 'boolean'],
         ]);
 
         if ($request->hasFile('featured_image')) {
@@ -103,11 +104,20 @@ class PostController extends Controller
             }
             $validated['featured_image'] = $request->file('featured_image')
                 ->store('posts/images', 'public');
+        } else {
+            unset($validated['featured_image']);
+        }
+
+        if (($validated['remove_featured_image'] ?? false) && $post->featured_image) {
+            Storage::disk('public')->delete($post->featured_image);
+            $validated['featured_image'] = null;
         }
 
         if ($validated['status'] === 'published' && empty($validated['published_at']) && ! $post->published_at) {
             $validated['published_at'] = now();
         }
+
+        unset($validated['remove_featured_image']);
 
         $post->update($validated);
         $post->tags()->sync($request->input('tag_ids', []));

@@ -18,6 +18,7 @@ const form = useForm({
     excerpt:            props.post.excerpt || '',
     body:               props.post.body,
     featured_image:     null,
+    remove_featured_image: false,
     featured_image_alt: props.post.featured_image_alt || '',
     status:             props.post.status,
     category_id:        props.post.category_id || '',
@@ -32,6 +33,11 @@ function submit() {
     form.post(route('admin.posts.update', props.post.id), {
         forceFormData: true,
     });
+}
+
+function handleImageChange(value) {
+    form.featured_image = value;
+    form.remove_featured_image = value === null && !!props.post.featured_image_url;
 }
 </script>
 
@@ -132,7 +138,7 @@ function submit() {
 
                 <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
                     <h3 class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">Kapak Görseli</h3>
-                    <ImageUpload :current-url="post.featured_image_url" :error="form.errors.featured_image" @change="val => form.featured_image = val" />
+                    <ImageUpload :current-url="post.featured_image_url" :error="form.errors.featured_image" @change="handleImageChange" />
                     <input v-model="form.featured_image_alt" type="text" placeholder="Alt text" class="mt-2 w-full px-3 py-2 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
             </div>
