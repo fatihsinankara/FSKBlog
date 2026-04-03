@@ -3,19 +3,41 @@ import { ref, computed } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import DarkModeToggle from './DarkModeToggle.vue';
 import SearchModal from './SearchModal.vue';
+import NavMenu from './NavMenu.vue';
 import {
-    Search, Menu, X, Home, FolderOpen, LayoutDashboard,
-    LogIn, UserPlus, LogOut, User, ChevronRight, Bookmark
+    Search, Menu, X, Home, LayoutDashboard,
+    LogIn, UserPlus, LogOut, User, Bookmark
 } from 'lucide-vue-next';
 
 const page = usePage();
 const drawerOpen = ref(false);
 const searchOpen = ref(false);
 
-const navCategories = computed(() => page.props.nav?.categories ?? []);
+const navMenu = computed(() => page.props.nav?.menu ?? []);
 const user = computed(() => page.props.auth?.user ?? null);
 const isAdmin = computed(() => Boolean(user.value?.is_admin));
 const isLoggedIn = computed(() => Boolean(user.value));
+
+function isExternalUrl(url = '') {
+    return /^(https?:)?\/\//.test(url) || url.startsWith('mailto:') || url.startsWith('tel:');
+}
+
+function itemComponent(item) {
+    return isExternalUrl(item.url ?? '') ? 'a' : Link;
+}
+
+function itemProps(item) {
+    const props = {
+        href: item.url,
+    };
+
+    if (item.open_in_new_tab) {
+        props.target = '_blank';
+        props.rel = 'noreferrer noopener';
+    }
+
+    return props;
+}
 
 function closeDrawer() {
     drawerOpen.value = false;
@@ -86,36 +108,37 @@ function logout() {
                                 <Home :size="16" class="shrink-0 text-neutral-400" />
                                 Anasayfa
                             </Link>
-                            <Link
-                                :href="route('categories.index')"
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                                @click="closeDrawer"
-                            >
-                                <FolderOpen :size="16" class="shrink-0 text-neutral-400" />
-                                Kategoriler
-                            </Link>
-                        </nav>
-                    </div>
+                            <template v-for="item in navMenu" :key="item.id">
+                                <component
+                                    v-if="item.url"
+                                    :is="itemComponent(item)"
+                                    v-bind="itemProps(item)"
+                                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                                    @click="closeDrawer"
+                                >
+                                    {{ item.label }}
+                                </component>
 
-                    <!-- Categories -->
-                    <div v-if="navCategories.length" class="px-4 pb-4">
-                        <p class="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-2">Kategoriler</p>
-                        <nav class="space-y-0.5">
-                            <Link
-                                v-for="cat in navCategories"
-                                :key="cat.id"
-                                :href="route('categories.show', cat.slug)"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                                :style="{ color: cat.color }"
-                                @click="closeDrawer"
-                            >
-                                <span
-                                    class="w-2 h-2 rounded-full shrink-0"
-                                    :style="{ backgroundColor: cat.color }"
-                                />
-                                {{ cat.name }}
-                                <ChevronRight :size="14" class="ml-auto text-neutral-300 dark:text-neutral-600" />
-                            </Link>
+                                <div
+                                    v-else
+                                    class="px-3 py-2.5 text-sm font-medium text-neutral-500 dark:text-neutral-400"
+                                >
+                                    {{ item.label }}
+                                </div>
+
+                                <div v-if="item.children?.length" class="ml-4 space-y-0.5">
+                                    <component
+                                        v-for="child in item.children"
+                                        :key="child.id"
+                                        :is="itemComponent(child)"
+                                        v-bind="itemProps(child)"
+                                        class="flex items-center px-3 py-2 rounded-lg text-sm text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                                        @click="closeDrawer"
+                                    >
+                                        {{ child.label }}
+                                    </component>
+                                </div>
+                            </template>
                         </nav>
                     </div>
 
@@ -222,28 +245,14 @@ function logout() {
             </Link>
 
             <!-- Desktop nav -->
-            <nav class="hidden md:flex items-center gap-1 flex-1">
+            <nav class="hidden md:flex items-center gap-1 flex-1 min-w-0">
                 <Link
                     :href="route('home')"
-                    class="px-3 py-1.5 text-sm rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    class="px-3 py-1.5 text-sm rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
                 >
                     Anasayfa
                 </Link>
-                <Link
-                    :href="route('categories.index')"
-                    class="px-3 py-1.5 text-sm rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                >
-                    Kategoriler
-                </Link>
-                <template v-for="cat in navCategories" :key="cat.id">
-                    <Link
-                        :href="route('categories.show', cat.slug)"
-                        class="px-3 py-1.5 text-sm rounded-md transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                        :style="{ color: cat.color }"
-                    >
-                        {{ cat.name }}
-                    </Link>
-                </template>
+                <NavMenu :items="navMenu" />
             </nav>
 
             <!-- Actions -->

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Page;
 use App\Models\Post;
 use App\Models\Tag;
 use Illuminate\Http\Response;
@@ -25,10 +26,20 @@ class SitemapController extends Controller
 
     public function pages(): Response
     {
-        $pages = [
+        $pages = array_merge([
             ['loc' => route('home'),              'priority' => '1.0', 'changefreq' => 'daily'],
             ['loc' => route('categories.index'),  'priority' => '0.8', 'changefreq' => 'weekly'],
-        ];
+        ], Page::published()
+            ->select('slug', 'updated_at')
+            ->latest('updated_at')
+            ->get()
+            ->map(fn (Page $page) => [
+                'loc' => route('pages.show', $page->slug),
+                'lastmod' => $page->updated_at?->toAtomString(),
+                'changefreq' => 'monthly',
+                'priority' => '0.6',
+            ])
+            ->all());
 
         return response()
             ->view('sitemap.pages', compact('pages'))

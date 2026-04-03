@@ -5,6 +5,7 @@ use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentLikeController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RssFeedController;
@@ -30,6 +31,7 @@ Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
+Route::get('/p/{slug}', [PageController::class, 'show'])->name('pages.show');
 
 // --- Comment store (public + auth) ---
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
@@ -59,6 +61,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('collections', Admin\CollectionController::class)->except(['show']);
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);
     Route::resource('tags', Admin\TagController::class)->only(['index', 'store', 'destroy']);
+    Route::resource('pages', Admin\PageController::class)->except(['show']);
+    Route::resource('menu-items', Admin\MenuController::class)->only(['store', 'update', 'destroy']);
+    Route::get('menus', [Admin\MenuController::class, 'index'])->name('menus.index');
+    Route::post('menus/reorder', [Admin\MenuController::class, 'reorder'])->name('menus.reorder');
+
     Route::get('cache', [Admin\CacheController::class, 'index'])->name('cache.index');
     Route::post('cache/clear', [Admin\CacheController::class, 'clear'])->name('cache.clear');
 

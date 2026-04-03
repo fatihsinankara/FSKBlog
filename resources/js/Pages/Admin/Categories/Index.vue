@@ -18,6 +18,7 @@ const form = useForm({
 
 const editing = ref(null);
 const editForm = useForm({
+    _method: 'PATCH',
     name: '',
     description: '',
     color: '#6366f1',
@@ -67,7 +68,6 @@ function startEdit(cat) {
 function saveEdit(cat) {
     editForm.post(route('admin.categories.update', cat.id), {
         preserveScroll: true,
-        data: { _method: 'PATCH' },
         forceFormData: true,
         onSuccess: () => {
             editing.value = null;
