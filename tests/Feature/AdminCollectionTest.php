@@ -2,16 +2,42 @@
 
 namespace Tests\Feature;
 
-use App\Models\Collection;
 use App\Models\Category;
+use App\Models\Collection;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class AdminCollectionTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_admin_can_open_collection_create_and_edit_pages(): void
+    {
+        $admin = User::factory()->create([
+            'is_admin' => true,
+        ]);
+
+        $collection = Collection::create([
+            'title' => 'Koleksiyon',
+            'status' => 'draft',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.collections.create'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Admin/Collections/Create'));
+
+        $this->actingAs($admin)
+            ->get(route('admin.collections.edit', $collection))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/Collections/Edit')
+                ->where('collection.id', $collection->id)
+            );
+    }
 
     public function test_admin_can_create_collection_with_part_numbers(): void
     {

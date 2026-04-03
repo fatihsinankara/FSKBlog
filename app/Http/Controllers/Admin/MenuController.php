@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MenuItem;
 use App\Models\Page;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -16,14 +17,16 @@ class MenuController extends Controller
 {
     public function index(): Response
     {
-        $items = MenuItem::with('children')
-            ->whereNull('parent_id')
-            ->orderBy('sort_order')
-            ->get();
-
         return Inertia::render('Admin/Menus/Index', [
-            'items' => $items,
-            'pages' => Page::published()->select('id', 'title', 'slug')->orderBy('title')->get(),
+            'items' => $this->menuItems(),
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Admin/Menus/Create', [
+            'pages' => $this->pages(),
+            'parent_options' => $this->parentOptions(),
         ]);
     }
 
@@ -46,7 +49,16 @@ class MenuController extends Controller
         MenuItem::create($validated);
         Cache::forget('nav.menu');
 
-        return back()->with('message', 'Menü öğesi eklendi.');
+        return redirect()->route('admin.menus.index')->with('message', 'Menü öğesi eklendi.');
+    }
+
+    public function edit(MenuItem $menuItem): Response
+    {
+        return Inertia::render('Admin/Menus/Edit', [
+            'menu_item' => $menuItem,
+            'pages' => $this->pages(),
+            'parent_options' => $this->parentOptions($menuItem),
+        ]);
     }
 
     public function update(Request $request, MenuItem $menuItem): RedirectResponse
@@ -72,7 +84,7 @@ class MenuController extends Controller
         $menuItem->update($validated);
         Cache::forget('nav.menu');
 
-        return back()->with('message', 'Menü öğesi güncellendi.');
+        return redirect()->route('admin.menus.index')->with('message', 'Menü öğesi güncellendi.');
     }
 
     public function destroy(MenuItem $menuItem): RedirectResponse
@@ -80,7 +92,7 @@ class MenuController extends Controller
         $menuItem->delete();
         Cache::forget('nav.menu');
 
-        return back()->with('message', 'Menü öğesi silindi.');
+        return redirect()->route('admin.menus.index')->with('message', 'Menü öğesi silindi.');
     }
 
     public function reorder(Request $request): RedirectResponse
@@ -98,6 +110,31 @@ class MenuController extends Controller
         Cache::forget('nav.menu');
 
         return back()->with('message', 'Sıralama güncellendi.');
+    }
+
+    protected function menuItems(): EloquentCollection
+    {
+        return MenuItem::with('children')
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->get();
+    }
+
+    protected function pages(): EloquentCollection
+    {
+        return Page::published()
+            ->select('id', 'title', 'slug')
+            ->orderBy('title')
+            ->get();
+    }
+
+    protected function parentOptions(?MenuItem $menuItem = null): EloquentCollection
+    {
+        return MenuItem::query()
+            ->whereNull('parent_id')
+            ->when($menuItem, fn ($query) => $query->whereKeyNot($menuItem->id))
+            ->orderBy('sort_order')
+            ->get(['id', 'label']);
     }
 
     protected function rulesFor(Request $request): array

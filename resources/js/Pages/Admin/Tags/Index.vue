@@ -1,24 +1,15 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { useForm, router } from '@inertiajs/vue3';
-import { Plus, Trash2 } from 'lucide-vue-next';
+import { Link, router } from '@inertiajs/vue3';
+import { Plus, Pencil, Trash2 } from 'lucide-vue-next';
 
 defineProps({
     tags: Array,
 });
 
-const form = useForm({ name: '' });
-
-function submit() {
-    form.post(route('admin.tags.store'), {
-        preserveScroll: true,
-        onSuccess: () => form.reset(),
-    });
-}
-
 function destroy(id) {
     if (confirm('Bu tagi silmek istediğine emin misin?')) {
-        router.delete(route('admin.tags.destroy', id), { preserveScroll: true });
+        router.delete(route('admin.tags.destroy', id));
     }
 }
 </script>
@@ -27,40 +18,47 @@ function destroy(id) {
     <AdminLayout>
         <Head title="Taglar" />
 
-        <div class="mb-8">
-            <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">Taglar</h1>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6">
-                <h2 class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">Yeni Tag</h2>
-                <form @submit.prevent="submit" class="flex gap-2">
-                    <input v-model="form.name" type="text" placeholder="Tag adı *" class="flex-1 px-3 py-2 text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" :class="{ 'border-red-400': form.errors.name }" />
-                    <button type="submit" :disabled="form.processing" class="flex items-center gap-1 px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl transition-colors">
-                        <Plus :size="16" />
-                        Ekle
-                    </button>
-                </form>
-                <p v-if="form.errors.name" class="text-xs text-red-500 mt-1">{{ form.errors.name }}</p>
+        <div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">Taglar</h1>
+                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                    Etiketleri tek listede gör, düzenle ve yazı kullanım sayılarını takip et.
+                </p>
             </div>
 
-            <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6">
-                <h2 class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">Mevcut Taglar</h2>
-                <div v-if="tags.length" class="flex flex-wrap gap-2">
-                    <div
-                        v-for="tag in tags"
-                        :key="tag.id"
-                        class="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
-                    >
-                        #{{ tag.name }}
-                        <span class="text-xs text-neutral-400">({{ tag.posts_count }})</span>
-                        <button @click="destroy(tag.id)" class="ml-1 text-neutral-400 hover:text-red-500 transition-colors">
-                            <Trash2 :size="12" />
+            <Link
+                :href="route('admin.tags.create')"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+            >
+                <Plus :size="16" />
+                Yeni Tag
+            </Link>
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+            <div v-if="tags.length" class="divide-y divide-neutral-100 dark:divide-neutral-800">
+                <div
+                    v-for="tag in tags"
+                    :key="tag.id"
+                    class="flex items-center justify-between px-6 py-4"
+                >
+                    <div>
+                        <p class="text-sm font-medium text-neutral-900 dark:text-white">#{{ tag.name }}</p>
+                        <p class="mt-0.5 text-xs text-neutral-400">{{ tag.posts_count }} yazı</p>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <Link :href="route('admin.tags.edit', tag.id)" class="p-2 text-neutral-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">
+                            <Pencil :size="15" />
+                        </Link>
+                        <button @click="destroy(tag.id)" class="p-2 text-neutral-400 transition-colors hover:text-red-500">
+                            <Trash2 :size="15" />
                         </button>
                     </div>
                 </div>
-                <p v-else class="text-sm text-neutral-400">Henüz tag yok.</p>
             </div>
+
+            <div v-else class="px-6 py-12 text-center text-sm text-neutral-400">Henüz tag yok.</div>
         </div>
     </AdminLayout>
 </template>

@@ -30,9 +30,7 @@ class CollectionController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Admin/Collections/Form', [
-            'mode' => 'create',
-            'collection' => null,
+        return Inertia::render('Admin/Collections/Create', [
             'available_posts' => $this->availablePosts(),
         ]);
     }
@@ -51,8 +49,7 @@ class CollectionController extends Controller
 
     public function edit(Collection $collection): Response
     {
-        return Inertia::render('Admin/Collections/Form', [
-            'mode' => 'edit',
+        return Inertia::render('Admin/Collections/Edit', [
             'collection' => $collection->load([
                 'posts' => fn ($query) => $query
                     ->select('posts.id', 'posts.title', 'posts.slug', 'posts.published_at')

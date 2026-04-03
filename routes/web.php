@@ -59,11 +59,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::resource('posts', Admin\PostController::class)->except(['show']);
     Route::resource('collections', Admin\CollectionController::class)->except(['show']);
-    Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);
-    Route::resource('tags', Admin\TagController::class)->only(['index', 'store', 'destroy']);
+    Route::resource('categories', Admin\CategoryController::class)->except(['show']);
+    Route::resource('tags', Admin\TagController::class)->except(['show']);
     Route::resource('pages', Admin\PageController::class)->except(['show']);
-    Route::resource('menu-items', Admin\MenuController::class)->only(['store', 'update', 'destroy']);
-    Route::get('menus', [Admin\MenuController::class, 'index'])->name('menus.index');
+    Route::resource('menus', Admin\MenuController::class)
+        ->except(['show'])
+        ->parameters(['menus' => 'menuItem']);
     Route::post('menus/reorder', [Admin\MenuController::class, 'reorder'])->name('menus.reorder');
 
     Route::get('cache', [Admin\CacheController::class, 'index'])->name('cache.index');
