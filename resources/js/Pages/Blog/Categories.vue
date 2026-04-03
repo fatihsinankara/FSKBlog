@@ -1,7 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { FolderOpen } from 'lucide-vue-next';
 
 defineProps({
     categories: Array,
@@ -23,11 +22,14 @@ defineProps({
                     :href="route('categories.show', cat.slug)"
                     class="group flex items-center gap-4 p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors"
                 >
-                    <div
-                        class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                        :style="{ backgroundColor: cat.color + '20', color: cat.color }"
-                    >
-                        <FolderOpen :size="20" />
+                    <!-- Image or icon -->
+                    <div class="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0">
+                        <img v-if="cat.image_url" :src="cat.image_url" class="w-full h-full object-cover" :alt="cat.name" />
+                        <div v-else class="w-full h-full flex items-center justify-center"
+                            :style="{ backgroundColor: cat.color + '20', color: cat.color }">
+                            <font-awesome-icon v-if="cat.icon" :icon="['fas', cat.icon]" class="text-lg" />
+                            <span v-else class="w-3 h-3 rounded-full block" :style="{ backgroundColor: cat.color }" />
+                        </div>
                     </div>
                     <div>
                         <p class="font-semibold text-neutral-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">

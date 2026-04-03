@@ -2,14 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    protected $fillable = ['name', 'slug', 'description', 'color'];
+    protected $fillable = ['name', 'slug', 'description', 'color', 'icon', 'image'];
+
+    protected $appends = ['image_url'];
+
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->image ? Storage::url($this->image) : null,
+        );
+    }
 
     protected static function uniqueSlug(string $slug, ?int $ignoreId = null): string
     {
