@@ -31,6 +31,7 @@ Route::get('/sitemap/tags.xml', [SitemapController::class, 'tags'])->name('sitem
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/search', [PostController::class, 'search'])->middleware('throttle:search')->name('search');
 Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');

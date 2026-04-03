@@ -121,6 +121,13 @@ function initials(label = '') {
                                 <Home :size="16" class="shrink-0 text-neutral-400" />
                                 Anasayfa
                             </Link>
+                            <Link
+                                :href="route('collections.index')"
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                                @click="closeDrawer"
+                            >
+                                Seriler
+                            </Link>
                             <template v-for="item in navMenu" :key="item.id">
                                 <component
                                     v-if="item.url"
@@ -272,6 +279,12 @@ function initials(label = '') {
                     class="px-3 py-1.5 text-sm rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
                 >
                     Anasayfa
+                </Link>
+                <Link
+                    :href="route('collections.index')"
+                    class="px-3 py-1.5 text-sm rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
+                >
+                    Seriler
                 </Link>
                 <NavMenu :items="navMenu" />
             </nav>

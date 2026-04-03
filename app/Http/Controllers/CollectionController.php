@@ -10,6 +10,65 @@ use Inertia\Response;
 
 class CollectionController extends Controller
 {
+    public function index(): Response
+    {
+        $cache = app(BlogContentCache::class);
+
+        $collections = $cache->remember('collections.index', [], 300, function () {
+            return Collection::published()
+                ->withCount('posts')
+                ->with([
+                    'posts' => fn ($query) => $query
+                        ->published()
+                        ->select([
+                            'posts.id',
+                            'posts.title',
+                            'posts.slug',
+                            'posts.excerpt',
+                            'posts.reading_time',
+                            'posts.published_at',
+                            'posts.category_id',
+                            'posts.featured_image',
+                            'posts.featured_image_alt',
+                        ])
+                        ->with('category:id,name,slug,color')
+                        ->orderBy('collection_post.part_number'),
+                ])
+                ->orderBy('title')
+                ->get()
+                ->map(function (Collection $collection) {
+                    $items = $collection->posts->map(fn ($post) => [
+                        'id' => $post->id,
+                        'title' => $post->title,
+                        'slug' => $post->slug,
+                        'excerpt' => $post->excerpt,
+                        'reading_time_text' => $post->reading_time_text,
+                        'published_at' => $post->published_at,
+                        'featured_image_url' => $post->featured_image_url,
+                        'featured_image_alt' => $post->featured_image_alt,
+                        'category' => $post->category?->toArray(),
+                        'part_number' => (int) $post->pivot->part_number,
+                    ])->values();
+
+                    return [
+                        'id' => $collection->id,
+                        'title' => $collection->title,
+                        'slug' => $collection->slug,
+                        'description' => $collection->description,
+                        'posts_count' => $collection->posts_count,
+                        'cover_item' => $items->first(),
+                        'latest_item' => $items->last(),
+                    ];
+                })
+                ->values()
+                ->all();
+        });
+
+        return Inertia::render('Blog/Collections', [
+            'collections' => $collections,
+        ]);
+    }
+
     public function show(string $slug): Response
     {
         $cache = app(BlogContentCache::class);

@@ -8,43 +8,158 @@
         <link rel="icon" href="{{ $site->favicon_url ?: asset('favicon.ico') }}">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@500;600&display=swap" rel="stylesheet" />
-        @if(app()->environment('testing'))
-            <style>
-                body { margin: 0; font-family: Inter, sans-serif; }
-            </style>
-        @else
-            @vite(['resources/css/app.css'])
-        @endif
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@500;600&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                color-scheme: dark;
+                --bg: #09090b;
+                --panel: rgba(255, 255, 255, 0.06);
+                --panel-border: rgba(255, 255, 255, 0.1);
+                --text: #ffffff;
+                --muted: rgba(228, 228, 231, 0.78);
+                --soft: rgba(228, 228, 231, 0.58);
+                --brand: #818cf8;
+                --brand-soft: rgba(129, 140, 248, 0.18);
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                min-height: 100vh;
+                font-family: 'Inter', sans-serif;
+                background:
+                    radial-gradient(circle at top left, rgba(99, 102, 241, 0.28), transparent 38%),
+                    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.16), transparent 30%),
+                    var(--bg);
+                color: var(--text);
+            }
+
+            .shell {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 2rem 1.5rem;
+            }
+
+            .card {
+                width: 100%;
+                max-width: 42rem;
+                border: 1px solid var(--panel-border);
+                background: var(--panel);
+                border-radius: 2rem;
+                padding: 2rem;
+                backdrop-filter: blur(18px);
+                box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+            }
+
+            .header {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
+
+            .logo-image,
+            .logo-fallback {
+                width: 3.5rem;
+                height: 3.5rem;
+                border-radius: 1rem;
+                flex-shrink: 0;
+            }
+
+            .logo-image {
+                object-fit: cover;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .logo-fallback {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--brand-soft);
+                color: #c7d2fe;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                border: 1px solid rgba(129, 140, 248, 0.24);
+            }
+
+            .eyebrow {
+                margin: 0 0 0.5rem;
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.32em;
+                text-transform: uppercase;
+                color: rgba(199, 210, 254, 0.86);
+            }
+
+            .title {
+                margin: 0;
+                font-family: 'Lora', serif;
+                font-size: clamp(2rem, 4vw, 2.6rem);
+                line-height: 1.1;
+            }
+
+            .description {
+                margin: 0;
+                max-width: 36rem;
+                font-size: 1rem;
+                line-height: 2;
+                color: var(--muted);
+            }
+
+            .notice {
+                margin-top: 2rem;
+                padding: 1rem 1.25rem;
+                border-radius: 1.25rem;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                background: rgba(0, 0, 0, 0.2);
+                color: var(--soft);
+                font-size: 0.95rem;
+                line-height: 1.8;
+            }
+
+            @media (max-width: 640px) {
+                .card {
+                    padding: 1.5rem;
+                    border-radius: 1.5rem;
+                }
+
+                .header {
+                    align-items: flex-start;
+                }
+            }
+        </style>
     </head>
-    <body class="min-h-screen bg-neutral-950 text-white antialiased">
-        <main class="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-16">
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.28),_transparent_38%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.16),_transparent_30%)]"></div>
-            <div class="relative w-full max-w-2xl rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
-                <div class="mb-8 flex items-center gap-4">
+    <body>
+        <main class="shell">
+            <section class="card">
+                <div class="header">
                     @if($site->logo_url)
-                        <img src="{{ $site->logo_url }}" alt="{{ $site->site_name }}" class="h-14 w-14 rounded-2xl object-cover ring-1 ring-white/10">
+                        <img src="{{ $site->logo_url }}" alt="{{ $site->site_name }}" class="logo-image">
                     @else
-                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/20 text-lg font-semibold text-indigo-200 ring-1 ring-indigo-300/20">
+                        <div class="logo-fallback">
                             {{ \Illuminate\Support\Str::substr($site->site_name, 0, 2) }}
                         </div>
                     @endif
+
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.32em] text-indigo-200/80">Bakım Modu</p>
-                        <h1 class="mt-2 font-serif text-3xl text-white">
-                            {{ $site->maintenance_title ?: 'Kısa bir bakım molasındayız' }}
-                        </h1>
+                        <p class="eyebrow">Bakım Modu</p>
+                        <h1 class="title">{{ $site->maintenance_title ?: 'Kısa bir bakım molasındayız' }}</h1>
                     </div>
                 </div>
 
-                <p class="max-w-xl text-base leading-8 text-neutral-200/85">
+                <p class="description">
                     {{ $site->maintenance_message ?: 'Daha iyi bir deneyim için sistemi güncelliyoruz. Çok yakında geri döneceğiz.' }}
                 </p>
 
-                <div class="mt-8 rounded-2xl border border-white/10 bg-black/20 px-5 py-4 text-sm text-neutral-300">
+                <div class="notice">
                     {{ $site->site_name }} kısa süreliğine erişime kapalı. Admin kullanıcıları giriş yaptıktan sonra siteyi kullanmaya devam edebilir.
                 </div>
-            </div>
+            </section>
         </main>
     </body>
 </html>
