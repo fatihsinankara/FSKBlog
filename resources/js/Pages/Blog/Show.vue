@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, computed } from 'vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import PostCard from '@/Components/Blog/PostCard.vue';
 import PostMeta from '@/Components/Blog/PostMeta.vue';
@@ -10,6 +10,7 @@ import PostCollectionNav from '@/Components/Blog/PostCollectionNav.vue';
 import ReadingProgress from '@/Components/Shared/ReadingProgress.vue';
 import ShareButtons from '@/Components/Blog/ShareButtons.vue';
 import TableOfContents from '@/Components/Blog/TableOfContents.vue';
+import SiteHead from '@/Components/Shared/SiteHead.vue';
 import { ArrowLeft, Bookmark, BookmarkCheck } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -60,14 +61,24 @@ onMounted(() => {
 
 <template>
     <AppLayout>
-        <Head>
-            <title>{{ post.meta_title || post.title }} | FSK Blog</title>
-            <meta name="description" :content="post.meta_description || post.excerpt" />
-            <meta property="og:title" :content="post.meta_title || post.title" />
-            <meta property="og:description" :content="post.meta_description || post.excerpt" />
-            <meta v-if="post.featured_image_url" property="og:image" :content="post.featured_image_url" />
-            <link rel="alternate" type="application/rss+xml" title="FSK Blog RSS" :href="route('feed')" />
-        </Head>
+        <SiteHead
+            :title="post.meta_title || post.title"
+            :description="post.meta_description || post.excerpt"
+            :image="post.featured_image_url"
+            :canonical="route('posts.show', post.slug)"
+            type="article"
+            :published-at="post.published_at"
+            :json-ld="{
+                '@context': 'https://schema.org',
+                '@type': 'Article',
+                headline: post.title,
+                description: post.meta_description || post.excerpt,
+                datePublished: post.published_at,
+                image: post.featured_image_url || undefined,
+                author: post.user?.name ? { '@type': 'Person', name: post.user.name } : undefined,
+                mainEntityOfPage: route('posts.show', post.slug),
+            }"
+        />
 
         <!-- Okuma ilerleme çubuğu -->
         <ReadingProgress />
@@ -137,7 +148,7 @@ onMounted(() => {
                 >
                     <BookmarkCheck v-if="post.is_bookmarked" :size="13" />
                     <Bookmark v-else :size="13" />
-                    {{ post.is_bookmarked ? 'Kaydedildi' : 'Kaydet' }}
+                    {{ post.is_bookmarked ? (post.bookmark_status === 'reading' ? 'Okunuyor' : post.bookmark_status === 'completed' ? 'Tamamlandı' : 'Kaydedildi') : 'Kaydet' }}
                 </button>
             </div>
 

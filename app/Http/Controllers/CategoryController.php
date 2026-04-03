@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Post;
+use App\Models\UserContentFollow;
 use App\Support\BlogContentCache;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -52,7 +53,14 @@ class CategoryController extends Controller
 
         return Inertia::render('Blog/CategoryShow', [
             'category' => $data['category'],
-            'posts'    => $data['posts'],
+            'posts' => $data['posts'],
+            'is_following' => auth()->check()
+                ? UserContentFollow::query()
+                    ->where('user_id', auth()->id())
+                    ->where('followable_type', Category::class)
+                    ->where('followable_id', $data['category']['id'])
+                    ->exists()
+                : false,
         ]);
     }
 }

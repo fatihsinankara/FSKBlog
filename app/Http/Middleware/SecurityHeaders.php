@@ -26,11 +26,12 @@ class SecurityHeaders
             $response->headers->set(
                 'Content-Security-Policy',
                 "default-src 'self'; ".
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; ".
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ".
-                "font-src 'self' https://fonts.gstatic.com; ".
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; ".
+                "style-src 'self' 'unsafe-inline' https:; ".
+                "font-src 'self' data: https:; ".
                 "img-src 'self' data: https: blob:; ".
-                "connect-src 'self' https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com; ".
+                "connect-src 'self' https: wss:; ".
+                'frame-src https:; '.
                 "frame-ancestors 'none';"
             );
         }

@@ -1,6 +1,7 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import SiteHead from '@/Components/Shared/SiteHead.vue';
 
 defineProps({
     categories: Array,
@@ -9,7 +10,11 @@ defineProps({
 
 <template>
     <AppLayout>
-        <Head title="Kategoriler" />
+        <SiteHead
+            title="Kategoriler"
+            description="Konulara göre tüm yazıları keşfet."
+            :canonical="route('categories.index')"
+        />
 
         <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
             <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">Kategoriler</h1>

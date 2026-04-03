@@ -15,6 +15,7 @@ const searchOpen = ref(false);
 
 const navMenu = computed(() => page.props.nav?.menu ?? []);
 const user = computed(() => page.props.auth?.user ?? null);
+const site = computed(() => page.props.site ?? {});
 const isAdmin = computed(() => Boolean(user.value?.is_admin));
 const isLoggedIn = computed(() => Boolean(user.value));
 
@@ -46,6 +47,10 @@ function closeDrawer() {
 function logout() {
     closeDrawer();
     router.post(route('logout'));
+}
+
+function initials(label = '') {
+    return label.slice(0, 2).toUpperCase();
 }
 </script>
 
@@ -82,10 +87,18 @@ function logout() {
             >
                 <!-- Drawer header -->
                 <div class="flex items-center justify-between h-16 px-5 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
-                    <span class="font-bold text-neutral-900 dark:text-white">
-                        <span class="text-indigo-600 dark:text-indigo-400">FSK</span>
-                        <span class="text-neutral-400 dark:text-neutral-600 font-light ml-1">Blog</span>
-                    </span>
+                    <Link :href="route('home')" class="flex items-center gap-3 text-neutral-900 dark:text-white" @click="closeDrawer">
+                        <img
+                            v-if="site.logo_url"
+                            :src="site.logo_url"
+                            :alt="site.site_name"
+                            class="h-9 w-9 rounded-xl object-cover ring-1 ring-neutral-200 dark:ring-neutral-800"
+                        />
+                        <span v-else class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 text-xs font-semibold text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
+                            {{ initials(site.site_name || 'FSK Blog') }}
+                        </span>
+                        <span class="font-bold tracking-tight">{{ site.site_name || 'FSK Blog' }}</span>
+                    </Link>
                     <button
                         class="p-2 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                         @click="closeDrawer"
@@ -228,7 +241,7 @@ function logout() {
 
                 <!-- Drawer footer -->
                 <div class="shrink-0 px-5 py-3 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
-                    <span class="text-xs text-neutral-400 dark:text-neutral-500">© 2025 FSK Blog</span>
+                    <span class="text-xs text-neutral-400 dark:text-neutral-500">© 2025 {{ site.site_name || 'FSK Blog' }}</span>
                     <DarkModeToggle />
                 </div>
             </aside>
@@ -239,9 +252,17 @@ function logout() {
     <header class="sticky top-0 z-30 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
             <!-- Logo -->
-            <Link :href="route('home')" class="text-xl font-bold tracking-tight text-neutral-900 dark:text-white mr-2 shrink-0">
-                <span class="text-indigo-600 dark:text-indigo-400">FSK</span>
-                <span class="text-neutral-400 dark:text-neutral-600 font-light ml-1">Blog</span>
+            <Link :href="route('home')" class="mr-2 flex items-center gap-3 shrink-0 text-neutral-900 dark:text-white">
+                <img
+                    v-if="site.logo_url"
+                    :src="site.logo_url"
+                    :alt="site.site_name"
+                    class="h-10 w-10 rounded-xl object-cover ring-1 ring-neutral-200 dark:ring-neutral-800"
+                />
+                <span v-else class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-sm font-semibold text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
+                    {{ initials(site.site_name || 'FSK Blog') }}
+                </span>
+                <span class="text-xl font-bold tracking-tight">{{ site.site_name || 'FSK Blog' }}</span>
             </Link>
 
             <!-- Desktop nav -->

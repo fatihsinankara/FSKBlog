@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bookmark;
+use App\Models\Category;
 use App\Models\Collection;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Models\Tag;
 use App\Support\BlogContentCache;
+use App\Support\PostMetrics;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -41,7 +44,7 @@ class PostController extends Controller
         return Inertia::render('Blog/Index', $data);
     }
 
-    public function show(string $slug): Response
+    public function show(string $slug, PostMetrics $metrics): Response
     {
         $cache = app(BlogContentCache::class);
 
@@ -58,18 +61,26 @@ class PostController extends Controller
 
         if (! session()->has('viewed_post_'.$post['id'])) {
             Post::whereKey($post['id'])->increment('views');
+            $metrics->increment($post['id'], 'views');
             $post['views'] = ($post['views'] ?? 0) + 1;
             session()->put('viewed_post_'.$post['id'], true);
         }
 
-        $isBookmarked = auth()->check()
-            ? Bookmark::where('user_id', auth()->id())->where('post_id', $post['id'])->exists()
-            : false;
+        $bookmark = auth()->check()
+            ? Bookmark::where('user_id', auth()->id())->where('post_id', $post['id'])->first()
+            : null;
 
         $comments = Comment::query()
             ->where('post_id', $post['id'])
+            ->topLevel()
             ->approved()
             ->with(['user:id,name'])
+            ->with([
+                'replies' => fn ($query) => $query
+                    ->approved()
+                    ->with('user:id,name')
+                    ->withCount('likes'),
+            ])
             ->withCount('likes')
             ->latest()
             ->paginate(20, ['*'], 'comments_page')
@@ -90,7 +101,8 @@ class PostController extends Controller
             'post' => array_merge($post, [
                 'comments' => $comments->toArray(),
                 'collection' => $this->resolveCollectionData($post['id']),
-                'is_bookmarked' => $isBookmarked,
+                'is_bookmarked' => (bool) $bookmark,
+                'bookmark_status' => $bookmark?->status,
             ]),
             'related' => $related,
         ]);
@@ -98,29 +110,83 @@ class PostController extends Controller
 
     public function search(): Response
     {
-        $term = request()->input('q', '');
+        $term = trim((string) request()->input('q', ''));
         $page = request()->integer('page', 1);
+        $filters = [
+            'q' => $term,
+            'category' => request()->string('category')->toString(),
+            'tag' => request()->string('tag')->toString(),
+            'collection' => request()->string('collection')->toString(),
+            'year' => request()->string('year')->toString(),
+            'reading_time' => request()->string('reading_time')->toString(),
+            'sort' => request()->string('sort')->toString() ?: 'latest',
+        ];
         $cache = app(BlogContentCache::class);
 
-        $data = $cache->remember('posts.search', ['q', md5($term), 'page', $page], 300, function () use ($term) {
+        $data = $cache->remember('posts.search', [$filters, 'page', $page], 300, function () use ($filters) {
             $query = Post::published()
                 ->select(BlogContentCache::POST_LISTING_COLUMNS)
                 ->with(['category:id,name,slug,color', 'tags:id,name,slug']);
 
-            $posts = ($term ? $query->search($term) : $query->latest('published_at'))
+            if ($filters['q']) {
+                $query->search($filters['q']);
+            }
+
+            if ($filters['category']) {
+                $query->forCategory($filters['category']);
+            }
+
+            if ($filters['tag']) {
+                $query->forTag($filters['tag']);
+            }
+
+            if ($filters['collection']) {
+                $query->whereHas('collections', fn ($collectionQuery) => $collectionQuery->where('slug', $filters['collection']));
+            }
+
+            if ($filters['year']) {
+                $query->whereYear('published_at', (int) $filters['year']);
+            }
+
+            match ($filters['reading_time']) {
+                'short' => $query->where('reading_time', '<=', 5),
+                'medium' => $query->whereBetween('reading_time', [6, 10]),
+                'long' => $query->where('reading_time', '>=', 11),
+                default => null,
+            };
+
+            match ($filters['sort']) {
+                'oldest' => $query->oldest('published_at'),
+                'most_viewed' => $query->orderByDesc('views')->orderByDesc('published_at'),
+                default => $query->latest('published_at'),
+            };
+
+            $posts = $query
                 ->paginate(9)
                 ->withQueryString()
                 ->through(fn (Post $post) => $post->toArray());
 
             return [
                 'posts' => $posts->toArray(),
-                'query' => $term,
+                'filters' => $filters,
             ];
         });
 
         return Inertia::render('Blog/Search', [
             'posts' => $data['posts'],
-            'query' => $data['query'],
+            'query' => $data['filters']['q'],
+            'filters' => $data['filters'],
+            'categories' => Category::query()->orderBy('name')->get(['id', 'name', 'slug'])->toArray(),
+            'tags' => Tag::query()->orderBy('name')->get(['id', 'name', 'slug'])->toArray(),
+            'collections' => Collection::published()->orderBy('title')->get(['id', 'title', 'slug'])->toArray(),
+            'years' => Post::published()
+                ->get(['published_at'])
+                ->map(fn (Post $post) => $post->published_at?->format('Y'))
+                ->filter()
+                ->unique()
+                ->sortDesc()
+                ->values()
+                ->all(),
         ]);
     }
 
@@ -170,6 +236,7 @@ class PostController extends Controller
                 'items' => $items->all(),
                 'previous' => $previous,
                 'next' => $next,
+                'current_slug' => $items[$currentIndex]['slug'],
             ];
         });
     }

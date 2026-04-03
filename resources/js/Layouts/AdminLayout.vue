@@ -10,6 +10,7 @@ import {
 
 const sidebarOpen = ref(false);
 const page = usePage();
+const site = computed(() => page.props.site ?? {});
 
 const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, route: 'admin.dashboard' },
@@ -20,6 +21,7 @@ const navItems = [
     { label: 'Kategoriler', icon: FolderOpen, route: 'admin.categories.index' },
     { label: 'Taglar', icon: Tag, route: 'admin.tags.index' },
     { label: 'Yorumlar', icon: MessageSquare, route: 'admin.comments.index' },
+    { label: 'Genel Ayarlar', icon: Menu, route: 'admin.settings.edit' },
     { label: 'Cache', icon: Database, route: 'admin.cache.index' },
 ];
 
@@ -64,11 +66,19 @@ const isMoreActive = computed(() => {
             class="fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 transform transition-transform duration-300 flex flex-col"
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
         >
-            <!-- Logo -->
+                <!-- Logo -->
             <div class="flex items-center justify-between h-16 px-5 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
-                <Link :href="route('home')" class="flex items-center gap-2 font-bold tracking-tight text-neutral-900 dark:text-white">
-                    <span class="text-indigo-600 dark:text-indigo-400 text-xl">FSK</span>
-                    <span class="text-neutral-400 dark:text-neutral-600 font-light">Blog</span>
+                <Link :href="route('home')" class="flex items-center gap-3 font-bold tracking-tight text-neutral-900 dark:text-white">
+                    <img
+                        v-if="site.logo_url"
+                        :src="site.logo_url"
+                        :alt="site.site_name"
+                        class="h-9 w-9 rounded-xl object-cover ring-1 ring-neutral-200 dark:ring-neutral-800"
+                    />
+                    <span v-else class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 text-xs font-semibold text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
+                        {{ (site.site_name || 'FSK Blog').slice(0, 2).toUpperCase() }}
+                    </span>
+                    <span>{{ site.site_name || 'FSK Blog' }}</span>
                 </Link>
                 <button
                     class="lg:hidden p-2 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"

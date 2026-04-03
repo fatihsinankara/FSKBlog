@@ -1,6 +1,6 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import SiteHead from '@/Components/Shared/SiteHead.vue';
 
 const props = defineProps({
     page: Object,
@@ -12,10 +12,17 @@ const metaDescription = props.page.meta_description || '';
 
 <template>
     <AppLayout>
-        <Head>
-            <title>{{ metaTitle }}</title>
-            <meta v-if="metaDescription" name="description" :content="metaDescription" />
-        </Head>
+        <SiteHead
+            :title="metaTitle"
+            :description="metaDescription"
+            :canonical="route('pages.show', page.slug)"
+            :json-ld="{
+                '@context': 'https://schema.org',
+                '@type': 'WebPage',
+                name: page.title,
+                url: route('pages.show', page.slug),
+            }"
+        />
 
         <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
             <article>

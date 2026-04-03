@@ -47,8 +47,12 @@ function formatDate(date) {
                                     {{ comment.user?.name || comment.guest_name }}
                                 </span>
                                 <span v-if="!comment.user_id" class="text-xs px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500">Misafir</span>
+                                <span v-if="comment.parent_id" class="text-xs px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300">Yanıt</span>
                                 <span class="text-xs text-neutral-400">{{ formatDate(comment.created_at) }}</span>
                             </div>
+                            <p v-if="comment.parent" class="mb-2 text-xs text-neutral-400">
+                                Yanıtlanan kişi: {{ comment.parent.user?.name || comment.parent.guest_name }}
+                            </p>
                             <p class="text-sm text-neutral-700 dark:text-neutral-300">{{ comment.body }}</p>
                             <Link v-if="comment.post" :href="route('posts.show', comment.post.slug)" class="text-xs text-indigo-500 hover:underline mt-1 inline-flex items-center gap-1">
                                 {{ comment.post.title }}
@@ -81,10 +85,11 @@ function formatDate(date) {
             <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-800">
                 <div v-for="comment in approved.data" :key="comment.id" class="p-5 flex items-start justify-between gap-4">
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm font-medium text-neutral-900 dark:text-white">{{ comment.user?.name || comment.guest_name }}</span>
-                            <span class="text-xs text-neutral-400">{{ formatDate(comment.created_at) }}</span>
-                        </div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-sm font-medium text-neutral-900 dark:text-white">{{ comment.user?.name || comment.guest_name }}</span>
+                        <span v-if="comment.parent_id" class="text-xs px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300">Yanıt</span>
+                        <span class="text-xs text-neutral-400">{{ formatDate(comment.created_at) }}</span>
+                    </div>
                         <p class="text-sm text-neutral-600 dark:text-neutral-400">{{ comment.body }}</p>
                     </div>
                     <button @click="destroy(comment.id)" class="p-1.5 text-neutral-400 hover:text-red-500 transition-colors flex-shrink-0">

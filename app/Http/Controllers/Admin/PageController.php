@@ -28,11 +28,11 @@ class PageController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'title'            => ['required', 'string', 'max:255'],
-            'slug'             => ['nullable', 'string', 'max:255', 'unique:pages,slug'],
-            'body'             => ['nullable', 'string'],
-            'status'           => ['required', 'in:draft,published'],
-            'meta_title'       => ['nullable', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:255', 'unique:pages,slug'],
+            'body' => ['nullable', 'string'],
+            'status' => ['required', 'in:draft,published'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -51,11 +51,11 @@ class PageController extends Controller
     public function update(Request $request, Page $page): RedirectResponse
     {
         $validated = $request->validate([
-            'title'            => ['required', 'string', 'max:255'],
-            'slug'             => ['nullable', 'string', 'max:255', 'unique:pages,slug,' . $page->id],
-            'body'             => ['nullable', 'string'],
-            'status'           => ['required', 'in:draft,published'],
-            'meta_title'       => ['nullable', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:255', 'unique:pages,slug,'.$page->id],
+            'body' => ['nullable', 'string'],
+            'status' => ['required', 'in:draft,published'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:500'],
         ]);
 

@@ -1,9 +1,9 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import PostCard from '@/Components/Blog/PostCard.vue';
 import PostCardFeatured from '@/Components/Blog/PostCardFeatured.vue';
 import Pagination from '@/Components/Shared/Pagination.vue';
+import SiteHead from '@/Components/Shared/SiteHead.vue';
 
 defineProps({
     featured: Object,
@@ -13,7 +13,14 @@ defineProps({
 
 <template>
     <AppLayout>
-        <Head title="Anasayfa" />
+        <SiteHead
+            :json-ld="{
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: 'FSK Blog',
+                url: route('home'),
+            }"
+        />
 
         <section class="relative overflow-hidden">
             <div class="absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.16),_transparent_45%),radial-gradient(circle_at_top_right,_rgba(14,165,233,0.12),_transparent_38%)] pointer-events-none" />

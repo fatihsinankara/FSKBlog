@@ -7,7 +7,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Bookmark extends Model
 {
-    protected $fillable = ['user_id', 'post_id'];
+    public const STATUS_SAVED = 'saved';
+
+    public const STATUS_READING = 'reading';
+
+    public const STATUS_COMPLETED = 'completed';
+
+    protected $fillable = ['user_id', 'post_id', 'status'];
+
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_SAVED,
+            self::STATUS_READING,
+            self::STATUS_COMPLETED,
+        ];
+    }
 
     public function user(): BelongsTo
     {

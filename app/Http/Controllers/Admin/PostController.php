@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Support\ContentNotifications;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -35,7 +36,7 @@ class PostController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ContentNotifications $notifications): RedirectResponse
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -65,6 +66,10 @@ class PostController extends Controller
         $post = Post::create(array_merge($validated, ['user_id' => $request->user()->id]));
         $post->tags()->sync($request->input('tag_ids', []));
 
+        if ($this->isVisible($post)) {
+            $notifications->notifyPublishedPost($post->loadMissing('category', 'collections'));
+        }
+
         Cache::forget('nav.categories');
 
         return redirect()->route('admin.posts.index')->with('message', 'Yazı oluşturuldu.');
@@ -79,8 +84,10 @@ class PostController extends Controller
         ]);
     }
 
-    public function update(Request $request, Post $post): RedirectResponse
+    public function update(Request $request, Post $post, ContentNotifications $notifications): RedirectResponse
     {
+        $wasVisible = $this->isVisible($post);
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
@@ -122,6 +129,10 @@ class PostController extends Controller
         $post->update($validated);
         $post->tags()->sync($request->input('tag_ids', []));
 
+        if (! $wasVisible && $this->isVisible($post->fresh())) {
+            $notifications->notifyPublishedPost($post->fresh()->loadMissing('category', 'collections'));
+        }
+
         return redirect()->route('admin.posts.index')->with('message', 'Yazı güncellendi.');
     }
 
@@ -134,5 +145,12 @@ class PostController extends Controller
         $post->delete();
 
         return redirect()->route('admin.posts.index')->with('message', 'Yazı silindi.');
+    }
+
+    protected function isVisible(Post $post): bool
+    {
+        return $post->status === 'published'
+            && $post->published_at !== null
+            && $post->published_at->isPast();
     }
 }

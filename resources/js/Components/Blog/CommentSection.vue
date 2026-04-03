@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
-import { MessageCircle, Send, Heart } from 'lucide-vue-next';
+import { MessageCircle, Send, Heart, CornerDownRight } from 'lucide-vue-next';
 import Pagination from '@/Components/Shared/Pagination.vue';
 
 const props = defineProps({
@@ -13,18 +13,23 @@ const user = page.props.auth.user;
 const isAdmin = computed(() => Boolean(user?.is_admin));
 const comments = computed(() => props.post.comments?.data ?? []);
 const totalComments = computed(() => props.post.comments?.total ?? comments.value.length);
+const replyingTo = ref(null);
 
 const form = useForm({
     body:        '',
     guest_name:  '',
     guest_email: '',
     website:     '',
+    parent_id:   null,
 });
 
 function submit() {
     form.post(route('comments.store', props.post.id), {
         preserveScroll: true,
-        onSuccess: () => form.reset('body', 'guest_name', 'guest_email', 'website'),
+        onSuccess: () => {
+            form.reset('body', 'guest_name', 'guest_email', 'website', 'parent_id');
+            replyingTo.value = null;
+        },
     });
 }
 
@@ -71,6 +76,16 @@ async function toggleLike(comment) {
         liked.value[comment.id]  = wasLiked;
         counts.value[comment.id] = getCount(comment) + (wasLiked ? 1 : -1);
     }
+}
+
+function startReply(comment) {
+    replyingTo.value = comment;
+    form.parent_id = comment.id;
+}
+
+function cancelReply() {
+    replyingTo.value = null;
+    form.parent_id = null;
 }
 </script>
 
@@ -119,6 +134,45 @@ async function toggleLike(comment) {
                             />
                             <span v-if="getCount(comment) > 0">{{ getCount(comment) }}</span>
                         </button>
+                        <button
+                            type="button"
+                            class="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-neutral-400 transition-colors hover:text-indigo-500 dark:text-neutral-500 dark:hover:text-indigo-300"
+                            @click="startReply(comment)"
+                        >
+                            <CornerDownRight :size="13" />
+                            Yanıtla
+                        </button>
+                    </div>
+
+                    <div v-if="comment.replies?.length" class="mt-4 space-y-4 border-l border-neutral-200 pl-4 dark:border-neutral-800">
+                        <div v-for="reply in comment.replies" :key="reply.id" class="flex gap-3">
+                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                                {{ (reply.author_name || 'A')[0].toUpperCase() }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="mb-1 flex items-baseline gap-2">
+                                    <span class="text-sm font-medium text-neutral-900 dark:text-white">{{ reply.author_name }}</span>
+                                    <span class="text-xs text-neutral-400">{{ formatDate(reply.created_at) }}</span>
+                                </div>
+                                <p class="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">{{ reply.body }}</p>
+                                <div class="mt-2 flex items-center gap-1">
+                                    <button
+                                        @click="toggleLike(reply)"
+                                        :disabled="!user"
+                                        class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors"
+                                        :class="[
+                                            !user ? 'cursor-default' : 'cursor-pointer',
+                                            getLiked(reply)
+                                                ? 'text-rose-500 dark:text-rose-400'
+                                                : 'text-neutral-400 dark:text-neutral-500 hover:text-rose-500 dark:hover:text-rose-400'
+                                        ]"
+                                    >
+                                        <Heart :size="13" :fill="getLiked(reply) ? 'currentColor' : 'none'" />
+                                        <span v-if="getCount(reply) > 0">{{ getCount(reply) }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -132,6 +186,15 @@ async function toggleLike(comment) {
         <div class="bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800">
             <h3 class="text-sm font-semibold mb-4 text-neutral-900 dark:text-white">Yorum Yaz</h3>
 
+            <div v-if="replyingTo" class="mb-4 flex items-start justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300">
+                <div>
+                    <strong>{{ replyingTo.author_name }}</strong> yorumuna yanıt yazıyorsun.
+                </div>
+                <button type="button" class="text-xs font-medium" @click="cancelReply">
+                    Vazgeç
+                </button>
+            </div>
+
             <form @submit.prevent="submit" class="space-y-4">
                 <input
                     v-model="form.website"
@@ -141,6 +204,7 @@ async function toggleLike(comment) {
                     class="hidden"
                     aria-hidden="true"
                 />
+                <input v-model="form.parent_id" type="hidden" />
 
                 <!-- Misafir alanları -->
                 <template v-if="!user">

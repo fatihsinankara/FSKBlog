@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Comment extends Model
 {
     protected $fillable = [
-        'post_id', 'user_id', 'guest_name', 'guest_email', 'body', 'is_approved',
+        'post_id', 'parent_id', 'user_id', 'guest_name', 'guest_email', 'body', 'is_approved',
     ];
 
     protected $appends = ['author_name'];
@@ -40,6 +40,16 @@ class Comment extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Comment::class, 'parent_id');
+    }
+
+    public function replies(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'parent_id')->oldest();
+    }
+
     public function likes(): HasMany
     {
         return $this->hasMany(CommentLike::class);
@@ -48,5 +58,10 @@ class Comment extends Model
     public function scopeApproved(Builder $query): Builder
     {
         return $query->where('is_approved', true);
+    }
+
+    public function scopeTopLevel(Builder $query): Builder
+    {
+        return $query->whereNull('parent_id');
     }
 }

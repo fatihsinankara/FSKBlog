@@ -14,12 +14,13 @@ class PageController extends Controller
 
         return Inertia::render('Blog/Page', [
             'page' => [
-                'id'               => $page->id,
-                'title'            => $page->title,
-                'rendered_body'    => $page->rendered_body,
-                'meta_title'       => $page->meta_title,
+                'id' => $page->id,
+                'slug' => $page->slug,
+                'title' => $page->title,
+                'rendered_body' => $page->rendered_body,
+                'meta_title' => $page->meta_title,
                 'meta_description' => $page->meta_description,
-                'updated_at'       => $page->updated_at,
+                'updated_at' => $page->updated_at,
             ],
         ]);
     }

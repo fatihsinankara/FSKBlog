@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Collection;
 use App\Models\Post;
+use App\Support\ContentNotifications;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -35,12 +36,13 @@ class CollectionController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ContentNotifications $notifications): RedirectResponse
     {
         $validated = $this->validatePayload($request);
 
         $collection = Collection::create(Arr::except($validated, ['items']));
-        $this->syncItems($collection, $validated['items'] ?? []);
+        $newItems = $this->syncItems($collection, $validated['items'] ?? []);
+        $this->notifyNewItems($collection, $newItems, $notifications);
 
         return redirect()
             ->route('admin.collections.index')
@@ -59,12 +61,13 @@ class CollectionController extends Controller
         ]);
     }
 
-    public function update(Request $request, Collection $collection): RedirectResponse
+    public function update(Request $request, Collection $collection, ContentNotifications $notifications): RedirectResponse
     {
         $validated = $this->validatePayload($request, $collection);
 
         $collection->update(Arr::except($validated, ['items']));
-        $this->syncItems($collection, $validated['items'] ?? []);
+        $newItems = $this->syncItems($collection, $validated['items'] ?? []);
+        $this->notifyNewItems($collection, $newItems, $notifications);
 
         return redirect()
             ->route('admin.collections.index')
@@ -162,8 +165,9 @@ class CollectionController extends Controller
         return $validator->validate();
     }
 
-    protected function syncItems(Collection $collection, array $items): void
+    protected function syncItems(Collection $collection, array $items): array
     {
+        $existingIds = $collection->posts()->pluck('posts.id')->map(fn ($id) => (int) $id)->all();
         $syncData = collect($items)
             ->sortBy('part_number')
             ->mapWithKeys(fn (array $item) => [
@@ -173,5 +177,32 @@ class CollectionController extends Controller
 
         $collection->posts()->sync($syncData);
         Post::bumpContentCacheVersion();
+
+        return collect($syncData)
+            ->reject(fn (array $pivot, int $postId) => in_array($postId, $existingIds, true))
+            ->map(fn (array $pivot) => (int) $pivot['part_number'])
+            ->all();
+    }
+
+    protected function notifyNewItems(Collection $collection, array $newItems, ContentNotifications $notifications): void
+    {
+        if ($collection->status !== 'published' || $newItems === []) {
+            return;
+        }
+
+        $posts = Post::query()
+            ->whereIn('id', array_keys($newItems))
+            ->get()
+            ->keyBy('id');
+
+        foreach ($newItems as $postId => $partNumber) {
+            $post = $posts->get((int) $postId);
+
+            if (! $post) {
+                continue;
+            }
+
+            $notifications->notifyCollectionFollowers($collection, $post, (int) $partNumber);
+        }
     }
 }

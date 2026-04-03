@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -49,7 +50,7 @@ class Category extends Model
         });
 
         static::updating(function (Category $category) {
-            if ($category->isDirty('name') && !$category->isDirty('slug')) {
+            if ($category->isDirty('name') && ! $category->isDirty('slug')) {
                 $category->slug = static::uniqueSlug(Str::slug($category->name), $category->id);
             }
         });
@@ -68,5 +69,10 @@ class Category extends Model
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    public function follows(): MorphMany
+    {
+        return $this->morphMany(UserContentFollow::class, 'followable');
     }
 }

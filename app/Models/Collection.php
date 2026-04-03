@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 
 class Collection extends Model
@@ -64,6 +65,11 @@ class Collection extends Model
             ->withPivot('part_number')
             ->withTimestamps()
             ->orderBy('collection_post.part_number');
+    }
+
+    public function follows(): MorphMany
+    {
+        return $this->morphMany(UserContentFollow::class, 'followable');
     }
 
     public function scopePublished(Builder $query): Builder

@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Support\SiteSettings;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
 class RssFeedController extends Controller
 {
-    public function index(): Response
+    public function index(SiteSettings $siteSettings): Response
     {
         $posts = Cache::remember('rss.feed', 600, function () {
             return Post::published()
@@ -20,7 +21,11 @@ class RssFeedController extends Controller
                 ->toArray();
         });
 
-        $xml = view('feed', ['posts' => $posts, 'siteUrl' => config('app.url')])->render();
+        $xml = view('feed', [
+            'posts' => $posts,
+            'siteUrl' => config('app.url'),
+            'site' => $siteSettings->current(),
+        ])->render();
 
         return response($xml, 200, [
             'Content-Type' => 'application/rss+xml; charset=UTF-8',

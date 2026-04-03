@@ -27,7 +27,7 @@ class Post extends Model
     {
         return [
             'published_at' => 'datetime',
-            'featured'     => 'boolean',
+            'featured' => 'boolean',
         ];
     }
 
@@ -102,6 +102,7 @@ class Post extends Model
         return Attribute::get(function () {
             return Cache::remember("post.{$this->id}.rendered", 3600, function () {
                 $converter = app(MarkdownConverter::class);
+
                 return $converter->convert($this->body)->getContent();
             });
         });
@@ -117,7 +118,7 @@ class Post extends Model
     protected function readingTimeText(): Attribute
     {
         return Attribute::get(function () {
-            return $this->reading_time . ' dk okuma';
+            return $this->reading_time.' dk okuma';
         });
     }
 
@@ -150,6 +151,16 @@ class Post extends Model
         return $this->hasMany(Comment::class);
     }
 
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(Bookmark::class);
+    }
+
+    public function dailyMetrics(): HasMany
+    {
+        return $this->hasMany(PostDailyMetric::class);
+    }
+
     // --- Scopes ---
 
     public function scopePublished(Builder $query): Builder
@@ -176,6 +187,16 @@ class Post extends Model
 
     public function scopeSearch(Builder $query, string $term): Builder
     {
+        $driver = $query->getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return $query->where(function (Builder $searchQuery) use ($term) {
+                $searchQuery
+                    ->where('title', 'like', '%'.$term.'%')
+                    ->orWhere('body', 'like', '%'.$term.'%');
+            });
+        }
+
         return $query->whereFullText(['title', 'body'], $term);
     }
 }

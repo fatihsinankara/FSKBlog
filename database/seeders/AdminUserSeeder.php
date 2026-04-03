@@ -13,9 +13,9 @@ class AdminUserSeeder extends Seeder
         User::firstOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@fskblog.com')],
             [
-                'name'              => env('ADMIN_NAME', 'FSK'),
-                'password'          => Hash::make(env('ADMIN_PASSWORD', 'changeme123')),
-                'is_admin'          => true,
+                'name' => env('ADMIN_NAME', 'FSK'),
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'changeme123')),
+                'is_admin' => true,
                 'email_verified_at' => now(),
             ]
         );

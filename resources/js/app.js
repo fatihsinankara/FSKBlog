@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 library.add(fas);
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = document.querySelector('title')?.textContent || import.meta.env.VITE_APP_NAME || 'FSK Blog';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

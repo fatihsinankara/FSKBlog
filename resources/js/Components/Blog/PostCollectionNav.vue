@@ -50,9 +50,11 @@ const hiddenCount = computed(() => {
                     <ListTree :size="14" />
                     Koleksiyon
                 </div>
-                <h2 class="font-serif text-2xl font-semibold text-neutral-950 dark:text-white">
-                    {{ collection.title }}
-                </h2>
+                <Link :href="route('collections.show', { slug: collection.slug, current: collection.current_slug })" class="inline-block">
+                    <h2 class="font-serif text-2xl font-semibold text-neutral-950 transition-colors hover:text-indigo-600 dark:text-white dark:hover:text-indigo-300">
+                        {{ collection.title }}
+                    </h2>
+                </Link>
                 <p class="mt-3 text-sm leading-7 text-neutral-600 dark:text-neutral-300">
                     Bu yazi bu serinin <strong class="font-semibold text-neutral-900 dark:text-white">{{ collection.current_part }}.</strong> parcasi.
                     Toplamda {{ collection.total_parts }} parcadan olusuyor.
@@ -63,6 +65,13 @@ const hiddenCount = computed(() => {
             </div>
 
             <div class="flex flex-wrap gap-3 lg:justify-end">
+                <Link
+                    :href="route('collections.show', { slug: collection.slug, current: collection.current_slug })"
+                    class="inline-flex items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-700 transition-colors hover:border-neutral-300 hover:text-neutral-950 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-neutral-600 dark:hover:text-white"
+                >
+                    <ListTree :size="15" />
+                    Seriye Git
+                </Link>
                 <Link
                     v-if="collection.previous"
                     :href="route('posts.show', collection.previous.slug)"

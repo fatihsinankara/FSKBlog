@@ -3,8 +3,11 @@
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentLikeController;
+use App\Http\Controllers\FollowController;
+use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
@@ -26,12 +29,15 @@ Route::get('/sitemap/tags.xml', [SitemapController::class, 'tags'])->name('sitem
 
 // --- Public routes ---
 Route::get('/', [PostController::class, 'index'])->name('home');
-Route::get('/search', [PostController::class, 'search'])->name('search');
+Route::get('/search', [PostController::class, 'search'])->middleware('throttle:search')->name('search');
 Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show');
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
+Route::get('/collections/{slug}', [CollectionController::class, 'show'])->name('collections.show');
 Route::get('/p/{slug}', [PageController::class, 'show'])->name('pages.show');
+Route::post('/newsletter/subscribe', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
+Route::get('/newsletter/unsubscribe/{token}', [NewsletterSubscriptionController::class, 'destroy'])->name('newsletter.unsubscribe');
 
 // --- Comment store (public + auth) ---
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
@@ -48,9 +54,14 @@ Route::middleware('auth')->group(function () {
     // Bookmarks
     Route::get('/bookmarks', [BookmarkController::class, 'index'])->name('bookmarks.index');
     Route::post('/posts/{post}/bookmark', [BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
+    Route::patch('/bookmarks/{bookmark}/status', [BookmarkController::class, 'updateStatus'])->name('bookmarks.status');
 
     // Comment likes
     Route::post('/comments/{comment}/like', [CommentLikeController::class, 'toggle'])->name('comments.like');
+
+    // Follows
+    Route::post('/categories/{category}/follow', [FollowController::class, 'toggleCategory'])->name('categories.follow');
+    Route::post('/collections/{collection}/follow', [FollowController::class, 'toggleCollection'])->name('collections.follow');
 });
 
 // --- Admin routes ---
@@ -59,6 +70,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::resource('posts', Admin\PostController::class)->except(['show']);
     Route::resource('collections', Admin\CollectionController::class)->except(['show']);
+    Route::get('settings', [Admin\SettingController::class, 'edit'])->name('settings.edit');
+    Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
     Route::resource('categories', Admin\CategoryController::class)->except(['show']);
     Route::resource('tags', Admin\TagController::class)->except(['show']);
     Route::resource('pages', Admin\PageController::class)->except(['show']);

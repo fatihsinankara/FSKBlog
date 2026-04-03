@@ -35,7 +35,7 @@ class TagController extends Controller
         });
 
         return Inertia::render('Blog/TagShow', [
-            'tag'   => $data['tag'],
+            'tag' => $data['tag'],
             'posts' => $data['posts'],
         ]);
     }

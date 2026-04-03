@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\NewsletterSync;
 use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Post;
@@ -10,6 +11,7 @@ use App\Policies\CategoryPolicy;
 use App\Policies\CommentPolicy;
 use App\Policies\PostPolicy;
 use App\Policies\TagPolicy;
+use App\Services\NullNewsletterSync;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->singleton(NewsletterSync::class, NullNewsletterSync::class);
+
         $this->app->singleton(MarkdownConverter::class, function () {
             $config = [
                 'html_input' => 'strip',

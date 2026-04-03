@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Page;
+use App\Support\SiteSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -30,9 +31,11 @@ class HandleInertiaRequests extends Middleware
                         'email' => $request->user()->email,
                         'is_admin' => $request->user()->is_admin,
                         'email_verified_at' => $request->user()->email_verified_at,
+                        'unread_notifications_count' => $request->user()->unreadNotifications()->count(),
                     ]
                     : null,
             ],
+            'site' => fn () => app(SiteSettings::class)->public(),
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),

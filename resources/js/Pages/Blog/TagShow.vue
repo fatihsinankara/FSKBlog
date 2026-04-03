@@ -1,8 +1,8 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import PostCard from '@/Components/Blog/PostCard.vue';
 import Pagination from '@/Components/Shared/Pagination.vue';
+import SiteHead from '@/Components/Shared/SiteHead.vue';
 
 defineProps({
     tag: Object,
@@ -12,7 +12,11 @@ defineProps({
 
 <template>
     <AppLayout>
-        <Head :title="`#${tag.name}`" />
+        <SiteHead
+            :title="`#${tag.name}`"
+            :description="`#${tag.name} etiketine sahip yazılar`"
+            :canonical="route('tags.show', tag.slug)"
+        />
 
         <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
             <div class="mb-10">
