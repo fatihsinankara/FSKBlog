@@ -1,13 +1,10 @@
 <script setup>
 import { computed } from 'vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
-    status: {
-        type: String,
-    },
+    status: String,
 });
 
 const form = useForm({});
@@ -16,46 +13,52 @@ const submit = () => {
     form.post(route('verification.send'));
 };
 
-const verificationLinkSent = computed(
-    () => props.status === 'verification-link-sent',
-);
+const verificationLinkSent = computed(() => props.status === 'verification-link-sent');
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Email Verification" />
+    <AppLayout>
+        <Head title="E-posta Doğrulama" />
 
-        <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            Thanks for signing up! Before getting started, could you verify your
-            email address by clicking on the link we just emailed to you? If you
-            didn't receive the email, we will gladly send you another.
-        </div>
+        <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
+            <div class="w-full max-w-sm">
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">E-posta Doğrulama</h1>
+                    <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Devam etmek için e-postanızı doğrulayın</p>
+                </div>
 
-        <div
-            class="mb-4 text-sm font-medium text-green-600 dark:text-green-400"
-            v-if="verificationLinkSent"
-        >
-            A new verification link has been sent to the email address you
-            provided during registration.
-        </div>
+                <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-8">
+                    <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-5">
+                        Kayıt olduğunuz için teşekkürler! Devam etmeden önce size gönderdiğimiz bağlantıya tıklayarak e-posta adresinizi doğrulamanız gerekiyor. E-postayı almadıysanız tekrar gönderebiliriz.
+                    </p>
 
-        <form @submit.prevent="submit">
-            <div class="mt-4 flex items-center justify-between">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Resend Verification Email
-                </PrimaryButton>
+                    <div
+                        v-if="verificationLinkSent"
+                        class="mb-5 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 rounded-lg px-3 py-2"
+                    >
+                        Kayıt sırasında verdiğiniz e-posta adresine yeni bir doğrulama bağlantısı gönderildi.
+                    </div>
 
-                <Link
-                    :href="route('logout')"
-                    method="post"
-                    as="button"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800"
-                    >Log Out</Link
-                >
+                    <form @submit.prevent="submit" class="space-y-3">
+                        <button
+                            type="submit"
+                            :disabled="form.processing"
+                            class="w-full py-2.5 px-4 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
+                        >
+                            {{ form.processing ? 'Gönderiliyor...' : 'Doğrulama E-postasını Tekrar Gönder' }}
+                        </button>
+
+                        <Link
+                            :href="route('logout')"
+                            method="post"
+                            as="button"
+                            class="w-full py-2.5 px-4 text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                        >
+                            Çıkış Yap
+                        </Link>
+                    </form>
+                </div>
             </div>
-        </form>
-    </GuestLayout>
+        </div>
+    </AppLayout>
 </template>

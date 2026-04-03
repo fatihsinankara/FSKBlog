@@ -5,9 +5,17 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+// --- Sitemap ---
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap.index');
+Route::get('/sitemap/pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
+Route::get('/sitemap/posts.xml', [SitemapController::class, 'posts'])->name('sitemap.posts');
+Route::get('/sitemap/categories.xml', [SitemapController::class, 'categories'])->name('sitemap.categories');
+Route::get('/sitemap/tags.xml', [SitemapController::class, 'tags'])->name('sitemap.tags');
 
 // --- Public routes ---
 Route::get('/', [PostController::class, 'index'])->name('home');
