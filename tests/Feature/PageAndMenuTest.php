@@ -84,7 +84,7 @@ class PageAndMenuTest extends TestCase
 
         $this->assertSame('yeni-hakkimizda', $page->slug);
         $this->assertDatabaseHas('menu_items', [
-            'label' => 'Hakkimizda',
+            'label' => 'Yeni Hakkimizda',
             'target' => 'yeni-hakkimizda',
         ]);
     }

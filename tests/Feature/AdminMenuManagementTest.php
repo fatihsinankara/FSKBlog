@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\User;
@@ -36,7 +37,11 @@ class AdminMenuManagementTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.menus.create'))
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->component('Admin/Menus/Create'));
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/Menus/Create')
+                ->has('pages', 1)
+                ->has('categories')
+            );
 
         $this->actingAs($admin)
             ->get(route('admin.menus.edit', $menuItem))
@@ -61,7 +66,7 @@ class AdminMenuManagementTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.menus.store'), [
-                'label' => 'Iletisim',
+                'label' => '',
                 'type' => 'page',
                 'target' => $page->slug,
                 'parent_id' => null,
@@ -113,6 +118,37 @@ class AdminMenuManagementTest extends TestCase
         $this->assertDatabaseHas('menu_items', [
             'id' => $secondItem->id,
             'sort_order' => 1,
+        ]);
+    }
+
+    public function test_admin_can_store_category_menu_item_with_automatic_label(): void
+    {
+        $admin = User::factory()->create([
+            'is_admin' => true,
+        ]);
+
+        $category = Category::create([
+            'name' => 'Gelistirme',
+            'description' => 'Teknik icerik',
+            'color' => '#111111',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.menus.store'), [
+                'label' => '',
+                'type' => 'category',
+                'target' => $category->slug,
+                'parent_id' => null,
+                'sort_order' => 0,
+                'is_active' => true,
+                'open_in_new_tab' => false,
+            ])
+            ->assertRedirect(route('admin.menus.index'));
+
+        $this->assertDatabaseHas('menu_items', [
+            'type' => 'category',
+            'target' => $category->slug,
+            'label' => $category->name,
         ]);
     }
 }

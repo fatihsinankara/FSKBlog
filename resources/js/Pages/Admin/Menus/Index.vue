@@ -7,6 +7,13 @@ const props = defineProps({
     items: Array,
 });
 
+function displayTarget(item) {
+    if (item.type === 'page') return `/p/${item.target}`;
+    if (item.type === 'category') return `/categories/${item.target}`;
+
+    return item.target;
+}
+
 function destroy(id) {
     if (confirm('Bu menü öğesini silmek istediğine emin misin?')) {
         router.delete(route('admin.menus.destroy', id));
@@ -91,7 +98,7 @@ function reorder(list, fromIndex, toIndex) {
                                         <ExternalLink v-if="item.open_in_new_tab" :size="11" class="shrink-0 text-neutral-400" />
                                     </div>
                                     <div class="mt-0.5 flex items-center gap-1">
-                                        <span class="truncate font-mono text-xs text-neutral-400">{{ item.type === 'page' ? '/p/' + item.target : item.target }}</span>
+                                        <span class="truncate font-mono text-xs text-neutral-400">{{ displayTarget(item) }}</span>
                                         <span class="rounded bg-indigo-50 px-1 text-xs text-indigo-400 dark:bg-indigo-950/40">{{ item.type }}</span>
                                     </div>
                                 </div>
@@ -134,7 +141,7 @@ function reorder(list, fromIndex, toIndex) {
                                             <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ child.label }}</span>
                                             <span v-if="!child.is_active" class="rounded bg-neutral-100 px-1 text-xs text-neutral-400 dark:bg-neutral-800">pasif</span>
                                         </div>
-                                        <span class="block truncate font-mono text-xs text-neutral-400">{{ child.type === 'page' ? '/p/' + child.target : child.target }}</span>
+                                        <span class="block truncate font-mono text-xs text-neutral-400">{{ displayTarget(child) }}</span>
                                     </div>
                                 </div>
 

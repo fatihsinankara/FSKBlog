@@ -53,9 +53,21 @@ class Category extends Model
             if ($category->isDirty('name') && ! $category->isDirty('slug')) {
                 $category->slug = static::uniqueSlug(Str::slug($category->name), $category->id);
             }
+
+            if ($category->isDirty('slug')) {
+                MenuItem::query()
+                    ->where('type', 'category')
+                    ->where('target', $category->getOriginal('slug'))
+                    ->update(['target' => $category->slug]);
+            }
         });
 
-        static::saved(function () {
+        static::saved(function (Category $category) {
+            MenuItem::query()
+                ->where('type', 'category')
+                ->where('target', $category->slug)
+                ->update(['label' => $category->name]);
+
             Cache::forget('nav.categories');
             Post::bumpContentCacheVersion();
         });

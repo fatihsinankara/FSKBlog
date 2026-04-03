@@ -11,7 +11,7 @@ class RssFeedController extends Controller
 {
     public function index(SiteSettings $siteSettings): Response
     {
-        $posts = Cache::remember('rss.feed', 600, function () {
+        $posts = Cache::remember('rss.feed.v'.Post::contentCacheVersion(), 600, function () {
             return Post::published()
                 ->select(['id', 'title', 'slug', 'excerpt', 'published_at', 'category_id'])
                 ->with('category:id,name,slug')

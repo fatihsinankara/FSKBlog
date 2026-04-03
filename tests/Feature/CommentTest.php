@@ -139,6 +139,27 @@ class CommentTest extends TestCase
             );
     }
 
+    public function test_public_comment_payload_does_not_expose_guest_email_addresses(): void
+    {
+        $post = $this->createPublishedPost();
+
+        Comment::create([
+            'post_id' => $post->id,
+            'guest_name' => 'Gizli Misafir',
+            'guest_email' => 'gizli@example.com',
+            'body' => 'Gorunur yorum',
+            'is_approved' => true,
+        ]);
+
+        $this->get(route('posts.show', $post->slug))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('post.comments.data', 1)
+                ->where('post.comments.data.0.author_name', 'Gizli Misafir')
+                ->missing('post.comments.data.0.guest_email')
+            )
+            ->assertDontSee('gizli@example.com');
+    }
+
     private function createPublishedPost(): Post
     {
         $author = User::factory()->create();

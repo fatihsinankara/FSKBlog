@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -19,6 +20,26 @@ class ProfileTest extends TestCase
             ->get('/profile');
 
         $response->assertOk();
+    }
+
+    public function test_settings_alias_and_dashboard_are_displayed(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('settings.edit'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Profile/Edit'));
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard')
+                ->has('stats')
+                ->has('recent_bookmarks')
+                ->has('recent_notifications')
+            );
     }
 
     public function test_profile_information_can_be_updated(): void

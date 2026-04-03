@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Models\Tag;
 use App\Support\BlogContentCache;
 use App\Support\PostMetrics;
+use Illuminate\Support\Collection as SupportCollection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -85,7 +86,7 @@ class PostController extends Controller
             ->latest()
             ->paginate(20, ['*'], 'comments_page')
             ->withQueryString()
-            ->through(fn (Comment $comment) => $comment->toArray());
+            ->through(fn (Comment $comment) => $this->publicCommentPayload($comment));
 
         $related = Post::published()
             ->when($post['category_id'], fn ($q) => $q->where('category_id', $post['category_id']))
@@ -239,5 +240,28 @@ class PostController extends Controller
                 'current_slug' => $items[$currentIndex]['slug'],
             ];
         });
+    }
+
+    protected function publicCommentPayload(Comment $comment): array
+    {
+        return [
+            'id' => $comment->id,
+            'body' => $comment->body,
+            'author_name' => $comment->author_name,
+            'created_at' => $comment->created_at?->toJSON(),
+            'likes_count' => $comment->likes_count ?? 0,
+            'replies' => $this->publicReplyPayload($comment->replies),
+        ];
+    }
+
+    protected function publicReplyPayload(SupportCollection $replies): array
+    {
+        return $replies->map(fn (Comment $reply) => [
+            'id' => $reply->id,
+            'body' => $reply->body,
+            'author_name' => $reply->author_name,
+            'created_at' => $reply->created_at?->toJSON(),
+            'likes_count' => $reply->likes_count ?? 0,
+        ])->values()->all();
     }
 }

@@ -49,8 +49,10 @@ class MenuItem extends Model
 
         return match ($this->type) {
             'page' => '/p/'.ltrim((string) $this->target, '/'),
+            'category' => '/categories/'.ltrim((string) $this->target, '/'),
             'external' => $this->target,
-            default => str_starts_with((string) $this->target, '/')
+            default => preg_match('/^https?:\/\//i', (string) $this->target) === 1
+                || str_starts_with((string) $this->target, '/')
                 || str_starts_with((string) $this->target, '#')
                 || str_starts_with((string) $this->target, '?')
                     ? $this->target

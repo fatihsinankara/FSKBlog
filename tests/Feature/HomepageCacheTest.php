@@ -66,6 +66,26 @@ class HomepageCacheTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->where('featured.title', 'After Update'));
     }
 
+    public function test_rss_feed_cache_is_refreshed_after_post_changes(): void
+    {
+        $post = $this->createPublishedPost([
+            'title' => 'Before Feed Update',
+        ]);
+
+        $this->get(route('feed'))
+            ->assertOk()
+            ->assertSee('Before Feed Update');
+
+        $post->update([
+            'title' => 'After Feed Update',
+        ]);
+
+        $this->get(route('feed'))
+            ->assertOk()
+            ->assertSee('After Feed Update')
+            ->assertDontSee('Before Feed Update');
+    }
+
     private function createPublishedPost(array $overrides = []): Post
     {
         $author = User::factory()->create();

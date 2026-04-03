@@ -5,7 +5,7 @@ import FlashMessage from '@/Components/Shared/FlashMessage.vue';
 import {
     LayoutDashboard, FileText, Tag, FolderOpen,
     MessageSquare, Database, BookOpen, LogOut, Menu, X, ExternalLink, User,
-    FileStack, Navigation
+    FileStack, Navigation, Users
 } from 'lucide-vue-next';
 
 const sidebarOpen = ref(false);
@@ -20,6 +20,7 @@ const navItems = [
     { label: 'Menü', icon: Navigation, route: 'admin.menus.index' },
     { label: 'Kategoriler', icon: FolderOpen, route: 'admin.categories.index' },
     { label: 'Taglar', icon: Tag, route: 'admin.tags.index' },
+    { label: 'Kullanıcılar', icon: Users, route: 'admin.users.index' },
     { label: 'Yorumlar', icon: MessageSquare, route: 'admin.comments.index' },
     { label: 'Genel Ayarlar', icon: Menu, route: 'admin.settings.edit' },
     { label: 'Cache', icon: Database, route: 'admin.cache.index' },

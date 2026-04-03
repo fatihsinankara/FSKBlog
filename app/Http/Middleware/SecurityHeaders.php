@@ -26,13 +26,17 @@ class SecurityHeaders
             $response->headers->set(
                 'Content-Security-Policy',
                 "default-src 'self'; ".
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; ".
+                "base-uri 'self'; ".
+                "form-action 'self'; ".
+                "object-src 'none'; ".
+                "script-src 'self' 'unsafe-inline' https:; ".
                 "style-src 'self' 'unsafe-inline' https:; ".
                 "font-src 'self' data: https:; ".
                 "img-src 'self' data: https: blob:; ".
                 "connect-src 'self' https: wss:; ".
                 'frame-src https:; '.
-                "frame-ancestors 'none';"
+                "frame-ancestors 'none'; ".
+                'upgrade-insecure-requests;'
             );
         }
 

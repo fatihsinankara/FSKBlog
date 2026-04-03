@@ -1,58 +1,357 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# FSK Blog
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+FSK Blog, Laravel 13 + Inertia.js + Vue 3 ile geliştirilmiş modern bir blog ve içerik yönetim uygulamasıdır. Public tarafta hızlı, sade ve SEO dostu bir okuma deneyimi sunarken; admin panelinde yazı, kategori, tag, sayfa, koleksiyon, menü, yorum ve site ayarlarını tek merkezden yönetmeyi hedefler.
 
-## About Laravel
+Bu repo yalnızca bir "blog teması" değil; içerik üretimi, editöryel akış, moderasyon, temel analitik, güvenlik başlıkları ve cache stratejisi düşünülmüş tam bir içerik platformu iskeletidir.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Öne Çıkanlar
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Laravel 13 backend, Inertia.js köprüsü ve Vue 3 frontend
+- Tailwind CSS v4 tabanlı modern arayüz
+- Public blog, kategori, tag, koleksiyon ve statik sayfa akışları
+- Admin panelden tam CRUD içerik yönetimi
+- Markdown destekli yazı ve sayfa içeriği
+- Yorum sistemi, admin onayı ve yorum beğenileri
+- Bookmark sistemi ve kayıtlı içerik durum yönetimi
+- Kategori ve koleksiyon takip akışı
+- Newsletter abonelik ve güvenli abonelikten çıkış akışı
+- RSS feed ve XML sitemap üretimi
+- Cache destekli içerik listeleme ve render stratejisi
+- Güvenlik başlıkları, throttle, bakım modu ve temel içerik korumaları
+- PHPUnit testleri ile desteklenen stabil bir temel
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Ekran / Modül Özeti
 
-## Learning Laravel
+### Public taraf
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- Ana sayfa
+- Yazı detay sayfası
+- Kategori arşivleri
+- Tag arşivleri
+- Koleksiyon listesi ve koleksiyon detay akışı
+- Statik sayfalar
+- Arama sayfası
+- RSS feed: `/feed.xml`
+- Sitemap:
+  - `/sitemap.xml`
+  - `/sitemap/pages.xml`
+  - `/sitemap/posts.xml`
+  - `/sitemap/categories.xml`
+  - `/sitemap/tags.xml`
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Üyelik ve kullanıcı etkileşimi
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- Kayıt ol / giriş yap
+- Profil güncelleme
+- Şifre güncelleme
+- Yazı bookmark'lama
+- Yorum gönderme
+- Yorum beğenme
+- Kategori takip etme
+- Koleksiyon takip etme
 
-## Agentic Development
+### Admin paneli
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+- Dashboard ve temel içerik metrikleri
+- Yazı yönetimi
+- Koleksiyon yönetimi
+- Kategori yönetimi
+- Tag yönetimi
+- Sayfa yönetimi
+- Menü yönetimi
+- Yorum moderasyonu
+- Cache paneli
+- Site ayarları
+- Bakım modu yönetimi
+
+## Teknoloji Yığını
+
+### Backend
+
+- PHP 8.3+
+- Laravel 13
+- Inertia Laravel
+- League CommonMark
+- Laravel Sanctum
+
+### Frontend
+
+- Vue 3
+- Inertia.js
+- Vite
+- Tailwind CSS v4
+- Lucide Vue
+
+### Geliştirici araçları
+
+- PHPUnit
+- Laravel Pint
+- Laravel Breeze
+- Laravel Pail
+
+## Kurulum
+
+### Gereksinimler
+
+- PHP 8.3 veya üzeri
+- Composer
+- Node.js 20+ ve npm
+- SQLite, MySQL veya PostgreSQL
+
+Varsayılan `.env.example` yapılandırması SQLite, database cache, database session ve database queue ile gelir. Local geliştirme için en hızlı başlangıç yolu budur.
+
+### Hızlı başlangıç
 
 ```bash
-composer require laravel/boost --dev
+git clone <repo-url> fskblog
+cd fskblog
 
-php artisan boost:install
+composer install
+npm install
+
+cp .env.example .env
+php artisan key:generate
+
+mkdir -p database
+touch database/database.sqlite
+
+php artisan migrate --seed
+php artisan storage:link
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Ardından geliştirme ortamını başlat:
 
-## Contributing
+```bash
+composer run dev
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Bu komut aynı anda şunları başlatır:
 
-## Code of Conduct
+- Laravel local server
+- Queue listener
+- Log izleme
+- Vite dev server
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Tek komutla kurulum
 
-## Security Vulnerabilities
+İstersen hazır Composer script'ini de kullanabilirsin:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+composer run setup
+php artisan migrate --seed
+php artisan storage:link
+```
 
-## License
+Not:
+`composer run setup` migration çalıştırır ama seed etmez. Demo içerik ve admin kullanıcı için ayrıca `php artisan migrate --seed` çalıştırmak gerekir.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Demo Kullanıcıları
+
+Seeder varsayılan olarak bir admin kullanıcı üretir:
+
+- E-posta: `admin@fskblog.com`
+- Şifre: `changeme123`
+
+Örnek içeriklerle birlikte bir normal kullanıcı da oluşturulur:
+
+- E-posta: `okur@fskblog.com`
+- Şifre: `changeme123`
+
+İlk kurulumdan sonra bu bilgileri mutlaka değiştirmen önerilir.
+
+Admin kullanıcı bilgilerini seed öncesinde environment ile özelleştirebilirsin:
+
+```env
+ADMIN_NAME=FSK
+ADMIN_EMAIL=admin@fskblog.com
+ADMIN_PASSWORD=super-secure-password
+```
+
+## Geliştirme Komutları
+
+### Uygulama
+
+```bash
+composer run dev
+php artisan serve
+npm run dev
+npm run build
+```
+
+### Veritabanı
+
+```bash
+php artisan migrate
+php artisan migrate:fresh --seed
+```
+
+### Test
+
+```bash
+composer test
+php artisan test
+php artisan test --parallel
+php artisan test --filter=CommentTest
+```
+
+### Format
+
+```bash
+vendor/bin/pint
+vendor/bin/pint --test
+```
+
+## Proje Yapısı
+
+```text
+app/
+├── Http/Controllers/        # Public ve admin controller'lar
+├── Http/Middleware/         # Security headers, admin kontrolü, bakım modu
+├── Models/                  # Eloquent modelleri
+├── Notifications/           # Bildirimler
+├── Policies/                # Authorization politikaları
+├── Support/                 # Cache, metrics, site settings, sanitization yardımcıları
+resources/
+├── js/
+│   ├── Components/          # Tekrar kullanılabilir Vue bileşenleri
+│   ├── Layouts/             # App ve admin layout'ları
+│   └── Pages/               # Inertia sayfaları
+└── views/                   # Blade root view, feed, sitemap, bakım ekranı
+routes/
+└── web.php                  # Public ve admin route tanımları
+database/
+├── migrations/              # Şema
+└── seeders/                 # Admin kullanıcı, site ayarı ve demo içerik seed'leri
+tests/
+└── Feature/                 # Uygulama davranışı odaklı testler
+```
+
+## İçerik Akışı
+
+### Yazılar
+
+- Admin panelden oluşturulur ve düzenlenir
+- Markdown olarak saklanır
+- Public tarafta render edilmiş HTML olarak sunulur
+- `published` durumu ve `published_at` kontrolü ile yayın akışı yönetilir
+- Kategori, tag ve koleksiyonlarla ilişkilendirilebilir
+
+### Koleksiyonlar
+
+- Serileştirilmiş içerik akışları için kullanılır
+- Her yazı yalnızca tek bir koleksiyona bağlanabilir
+- Part numarası mantığıyla sıralanır
+- Public tarafta okuyucuya bölüm akışı sunar
+
+### Sayfalar
+
+- Blog dışı sabit içerikler için kullanılır
+- Örn: hakkımızda, iletişim, kullanım koşulları
+- Menü sistemine bağlanabilir
+
+### Yorumlar
+
+- Misafir veya giriş yapmış kullanıcı tarafından bırakılabilir
+- Admin dışındaki kullanıcı yorumları onay bekler
+- Tek seviyeli yanıt akışı vardır
+- Spam azaltmak için honeypot ve throttle içerir
+
+## Güvenlik ve Kararlılık
+
+Projede temel güvenlik ve dayanıklılık katmanları hazır gelir:
+
+- `admin` middleware ile yönetim paneli koruması
+- CSP, HSTS, `X-Frame-Options`, `Referrer-Policy` gibi güvenlik başlıkları
+- Arama, yorum ve newsletter uçlarında rate limit
+- Session tabanlı görüntülenme sayacı koruması
+- Yorum verisinde public payload daraltması
+- Güvenli newsletter unsubscribe confirm akışı
+- Admin ayarlarındaki özel snippet alanları için sıkı sanitization
+- Bakım modu desteği
+
+## Cache ve Performans
+
+İçerik ağırlıklı sayfalarda kontrollü cache kullanımı vardır:
+
+- Ana sayfa
+- Arama sonuçları
+- Kategori ve tag arşivleri
+- Koleksiyon listeleme ve detay akışları
+- Tekil yazı render çıktısı
+- Sayfa render çıktısı
+- RSS feed
+
+İçerik güncellendiğinde ilgili cache katmanları temizlenecek şekilde yapı kurulmuştur. Bu sayede performans kazanımı ile içerik tutarlılığı arasında dengeli bir yaklaşım hedeflenir.
+
+## Newsletter Altyapısı
+
+Newsletter tarafı `App\Contracts\NewsletterSync` sözleşmesi üzerinden çalışır. Varsayılan olarak `NullNewsletterSync` kullanılır; yani dış servise bağlanmadan güvenli bir local akış sağlar.
+
+Eğer ileride Mailchimp, Brevo veya başka bir servis bağlamak istersen:
+
+1. `NewsletterSync` kontratını implement eden bir servis yaz.
+2. `AppServiceProvider` içinde binding'i değiştir.
+3. Gerekli API bilgilerini `.env` üzerinden yönet.
+
+Bu yaklaşım sayesinde çekirdek uygulama akışı bozulmadan entegrasyon genişletilebilir.
+
+## Site Ayarları
+
+Admin panelindeki genel ayarlar bölümü şunları yönetir:
+
+- Site adı ve açıklaması
+- Varsayılan meta title / description
+- Logo, favicon, OG image
+- Head ve body sonu özel kod alanları
+- Bakım modu başlığı ve mesajı
+
+Bu alanlar public uygulamaya shared props ile taşınır ve layout seviyesinde kullanılır.
+
+## Test Kapsamı
+
+Feature testleri şu başlıklarda kapsama sağlar:
+
+- Admin yetkilendirme
+- Yazı, kategori, tag, koleksiyon ve menü yönetimi
+- Authentication ve profil akışları
+- Yorum sistemi
+- Cache invalidation davranışları
+- Page ve menu görünürlüğü
+- Newsletter abonelik akışı
+- Güvenlik odaklı snippet doğrulaması
+
+## Prod'a Alırken Dikkat
+
+Üretim ortamına geçmeden önce en azından şunları gözden geçir:
+
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- Güçlü bir `APP_KEY`
+- Gerçek `APP_URL`
+- Uygun `MAIL_*` ayarları
+- Queue worker yapılandırması
+- `php artisan storage:link`
+- Cache / session / queue için uygun store seçimi
+- Varsayılan admin şifresinin değiştirilmesi
+
+Önerilen optimizasyon komutları:
+
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+npm run build
+```
+
+## Kısa Yol Haritası Fikirleri
+
+- Gerçek e-posta servis entegrasyonu
+- Medya kütüphanesi / görsel yönetimi
+- Çok yazarlı editör akışı
+- Draft preview
+- Gelişmiş analitik ve raporlama
+- Çok dilli içerik desteği
+
+## Lisans
+
+Bu proje MIT lisansı ile sunulmaktadır.

@@ -7,12 +7,13 @@ import { ArrowLeft } from 'lucide-vue-next';
 const props = defineProps({
     menu_item: Object,
     pages: Array,
+    categories: Array,
     parent_options: Array,
 });
 
 const form = useForm({
     label: props.menu_item.label,
-    type: props.menu_item.type,
+    type: props.menu_item.type === 'external' ? 'custom' : props.menu_item.type,
     target: props.menu_item.target ?? '',
     parent_id: props.menu_item.parent_id ?? '',
     sort_order: props.menu_item.sort_order,
@@ -40,7 +41,7 @@ function submit() {
         </div>
 
         <form @submit.prevent="submit">
-            <MenuForm :form="form" :pages="pages" :parent-options="parent_options" submit-label="Güncelle" />
+            <MenuForm :form="form" :pages="pages" :categories="categories" :parent-options="parent_options" submit-label="Güncelle" />
         </form>
     </AdminLayout>
 </template>

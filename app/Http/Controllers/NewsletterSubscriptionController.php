@@ -4,12 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Contracts\NewsletterSync;
 use App\Models\NewsletterSubscription;
+use App\Support\SiteSettings;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class NewsletterSubscriptionController extends Controller
 {
+    public function confirm(string $token, SiteSettings $siteSettings): View
+    {
+        $subscription = NewsletterSubscription::query()
+            ->where('unsubscribe_token', $token)
+            ->firstOrFail();
+
+        return view('newsletter.unsubscribe', [
+            'site' => $siteSettings->current(),
+            'subscription' => $subscription,
+        ]);
+    }
+
     public function store(Request $request, NewsletterSync $sync): RedirectResponse
     {
         $validated = $request->validate([
@@ -46,13 +60,17 @@ class NewsletterSubscriptionController extends Controller
             ->where('unsubscribe_token', $token)
             ->firstOrFail();
 
-        $subscription->update([
-            'status' => 'unsubscribed',
-            'unsubscribed_at' => now(),
-        ]);
+        if ($subscription->status !== 'unsubscribed') {
+            $subscription->update([
+                'status' => 'unsubscribed',
+                'unsubscribed_at' => now(),
+            ]);
 
-        $sync->sync($subscription);
+            $sync->sync($subscription);
 
-        return redirect()->route('home')->with('message', 'Bülten aboneliğin sonlandırıldı.');
+            return redirect()->route('home')->with('message', 'Bülten aboneliğin sonlandırıldı.');
+        }
+
+        return redirect()->route('home')->with('message', 'Bülten aboneliğin zaten sonlandırılmıştı.');
     }
 }

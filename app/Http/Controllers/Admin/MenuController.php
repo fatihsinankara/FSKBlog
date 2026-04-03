@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Page;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -26,6 +27,7 @@ class MenuController extends Controller
     {
         return Inertia::render('Admin/Menus/Create', [
             'pages' => $this->pages(),
+            'categories' => $this->categories(),
             'parent_options' => $this->parentOptions(),
         ]);
     }
@@ -33,6 +35,7 @@ class MenuController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate($this->rulesFor($request));
+        $validated['label'] = $this->resolveLabel($validated);
 
         if ($validated['type'] === 'custom') {
             $validated['target'] = $this->normalizeCustomPath($validated['target']);
@@ -57,6 +60,7 @@ class MenuController extends Controller
         return Inertia::render('Admin/Menus/Edit', [
             'menu_item' => $menuItem,
             'pages' => $this->pages(),
+            'categories' => $this->categories(),
             'parent_options' => $this->parentOptions($menuItem),
         ]);
     }
@@ -64,6 +68,7 @@ class MenuController extends Controller
     public function update(Request $request, MenuItem $menuItem): RedirectResponse
     {
         $validated = $request->validate($this->rulesFor($request));
+        $validated['label'] = $this->resolveLabel($validated);
 
         if ($validated['type'] === 'custom') {
             $validated['target'] = $this->normalizeCustomPath($validated['target']);
@@ -128,6 +133,14 @@ class MenuController extends Controller
             ->get();
     }
 
+    protected function categories(): EloquentCollection
+    {
+        return Category::query()
+            ->select('id', 'name', 'slug')
+            ->orderBy('name')
+            ->get();
+    }
+
     protected function parentOptions(?MenuItem $menuItem = null): EloquentCollection
     {
         return MenuItem::query()
@@ -139,21 +152,30 @@ class MenuController extends Controller
 
     protected function rulesFor(Request $request): array
     {
+        $type = $request->input('type');
+        $labelRules = ['nullable', 'string', 'max:100'];
         $targetRules = ['nullable', 'string', 'max:500'];
 
-        if ($request->input('type') === 'external') {
+        if ($type === 'custom') {
+            $labelRules[0] = 'required';
+            $targetRules[] = 'required';
+        } elseif ($type === 'external') {
+            $labelRules[0] = 'required';
             $targetRules[] = 'required';
             $targetRules[] = 'url:http,https';
-        } elseif ($request->input('type') === 'page') {
+        } elseif ($type === 'page') {
             $targetRules[] = 'required';
             $targetRules[] = Rule::exists('pages', 'slug');
+        } elseif ($type === 'category') {
+            $targetRules[] = 'required';
+            $targetRules[] = Rule::exists('categories', 'slug');
         } else {
             $targetRules[] = 'required';
         }
 
         return [
-            'label' => ['required', 'string', 'max:100'],
-            'type' => ['required', 'in:page,custom,external'],
+            'label' => $labelRules,
+            'type' => ['required', 'in:page,category,custom,external'],
             'target' => $targetRules,
             'parent_id' => ['nullable', 'exists:menu_items,id'],
             'sort_order' => ['required', 'integer', 'min:0'],
@@ -181,10 +203,27 @@ class MenuController extends Controller
             return '/';
         }
 
+        if (filter_var($target, FILTER_VALIDATE_URL) && preg_match('/^https?:\/\//i', $target) === 1) {
+            return $target;
+        }
+
         if (str_starts_with($target, '/') || str_starts_with($target, '#') || str_starts_with($target, '?')) {
             return $target;
         }
 
         return '/'.ltrim($target, '/');
+    }
+
+    protected function resolveLabel(array $validated): string
+    {
+        return match ($validated['type']) {
+            'page' => Page::query()
+                ->where('slug', $validated['target'])
+                ->value('title') ?? $validated['label'] ?? '',
+            'category' => Category::query()
+                ->where('slug', $validated['target'])
+                ->value('name') ?? $validated['label'] ?? '',
+            default => trim((string) ($validated['label'] ?? '')),
+        };
     }
 }

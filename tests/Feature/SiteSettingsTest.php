@@ -68,6 +68,23 @@ class SiteSettingsTest extends TestCase
             ->assertSessionHasErrors(['custom_head_code', 'custom_body_end_code']);
     }
 
+    public function test_custom_snippets_with_dangerous_attributes_are_rejected(): void
+    {
+        $admin = User::factory()->create([
+            'is_admin' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.settings.edit'))
+            ->post(route('admin.settings.update'), [
+                'site_name' => 'Test',
+                'custom_head_code' => '<script src="javascript:alert(1)"></script>',
+                'custom_body_end_code' => '<iframe src="https://example.com" onload="alert(1)"></iframe>',
+            ])
+            ->assertRedirect(route('admin.settings.edit'))
+            ->assertSessionHasErrors(['custom_head_code', 'custom_body_end_code']);
+    }
+
     public function test_maintenance_mode_blocks_public_users_but_allows_admins(): void
     {
         SiteSetting::query()->create([

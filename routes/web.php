@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentLikeController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\PageController;
@@ -15,7 +16,6 @@ use App\Http\Controllers\RssFeedController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // --- RSS Feed ---
 Route::get('/feed.xml', [RssFeedController::class, 'index'])->name('feed');
@@ -37,8 +37,13 @@ Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('cat
 Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
 Route::get('/collections/{slug}', [CollectionController::class, 'show'])->name('collections.show');
 Route::get('/p/{slug}', [PageController::class, 'show'])->name('pages.show');
-Route::post('/newsletter/subscribe', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
-Route::get('/newsletter/unsubscribe/{token}', [NewsletterSubscriptionController::class, 'destroy'])->name('newsletter.unsubscribe');
+Route::post('/newsletter/subscribe', [NewsletterSubscriptionController::class, 'store'])
+    ->middleware('throttle:newsletter')
+    ->name('newsletter.subscribe');
+Route::get('/newsletter/unsubscribe/{token}', [NewsletterSubscriptionController::class, 'confirm'])->name('newsletter.unsubscribe');
+Route::post('/newsletter/unsubscribe/{token}', [NewsletterSubscriptionController::class, 'destroy'])
+    ->middleware('throttle:newsletter')
+    ->name('newsletter.unsubscribe.destroy');
 
 // --- Comment store (public + auth) ---
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
@@ -46,9 +51,10 @@ Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
     ->name('comments.store');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/settings', [ProfileController::class, 'edit'])->name('settings.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
@@ -80,6 +86,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ->except(['show'])
         ->parameters(['menus' => 'menuItem']);
     Route::post('menus/reorder', [Admin\MenuController::class, 'reorder'])->name('menus.reorder');
+    Route::resource('users', Admin\UserController::class)->except(['show']);
 
     Route::get('cache', [Admin\CacheController::class, 'index'])->name('cache.index');
     Route::post('cache/clear', [Admin\CacheController::class, 'clear'])->name('cache.clear');

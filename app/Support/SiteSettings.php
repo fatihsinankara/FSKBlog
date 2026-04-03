@@ -3,8 +3,8 @@
 namespace App\Support;
 
 use App\Models\SiteSetting;
-use Throwable;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class SiteSettings
 {

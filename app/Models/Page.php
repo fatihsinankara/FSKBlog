@@ -32,6 +32,13 @@ class Page extends Model
                     ->where('target', $page->getOriginal('slug'))
                     ->update(['target' => $page->slug]);
             }
+
+            if ($page->wasChanged(['title', 'slug'])) {
+                MenuItem::query()
+                    ->where('type', 'page')
+                    ->where('target', $page->slug)
+                    ->update(['label' => $page->title]);
+            }
         });
 
         static::saved(function (Page $page) {

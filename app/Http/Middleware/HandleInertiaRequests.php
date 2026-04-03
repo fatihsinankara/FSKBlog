@@ -48,6 +48,9 @@ class HandleInertiaRequests extends Middleware
                     $publishedPageSlugs = Page::published()
                         ->pluck('slug')
                         ->flip();
+                    $categorySlugs = Category::query()
+                        ->pluck('slug')
+                        ->flip();
 
                     $items = MenuItem::with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
                         ->whereNull('parent_id')
@@ -55,9 +58,9 @@ class HandleInertiaRequests extends Middleware
                         ->orderBy('sort_order')
                         ->get();
 
-                    return $items->map(function (MenuItem $item) use ($publishedPageSlugs) {
+                    return $items->map(function (MenuItem $item) use ($publishedPageSlugs, $categorySlugs) {
                         $children = $item->children
-                            ->filter(fn (MenuItem $child) => $child->type !== 'page' || $publishedPageSlugs->has($child->target))
+                            ->filter(fn (MenuItem $child) => $this->menuItemHasVisibleTarget($child, $publishedPageSlugs, $categorySlugs))
                             ->map(fn (MenuItem $child) => [
                                 'id' => $child->id,
                                 'label' => $child->label,
@@ -67,7 +70,7 @@ class HandleInertiaRequests extends Middleware
                             ])
                             ->values();
 
-                        $hasVisibleLink = $item->type !== 'page' || $publishedPageSlugs->has($item->target);
+                        $hasVisibleLink = $this->menuItemHasVisibleTarget($item, $publishedPageSlugs, $categorySlugs);
 
                         if (! $hasVisibleLink && $children->isEmpty()) {
                             return null;
@@ -85,5 +88,14 @@ class HandleInertiaRequests extends Middleware
                 }),
             ],
         ];
+    }
+
+    protected function menuItemHasVisibleTarget(MenuItem $item, $publishedPageSlugs, $categorySlugs): bool
+    {
+        return match ($item->type) {
+            'page' => $publishedPageSlugs->has($item->target),
+            'category' => $categorySlugs->has($item->target),
+            default => true,
+        };
     }
 }

@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-vue-next';
 
 const props = defineProps({
     pages: Array,
+    categories: Array,
     parent_options: Array,
 });
 
@@ -36,7 +37,7 @@ function submit() {
         </div>
 
         <form @submit.prevent="submit">
-            <MenuForm :form="form" :pages="pages" :parent-options="parent_options" submit-label="Kaydet" />
+            <MenuForm :form="form" :pages="pages" :categories="categories" :parent-options="parent_options" submit-label="Kaydet" />
         </form>
     </AdminLayout>
 </template>

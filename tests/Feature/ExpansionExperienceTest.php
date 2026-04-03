@@ -135,12 +135,37 @@ class ExpansionExperienceTest extends TestCase
         $this->assertSame([$category->id], $subscription->categories);
 
         $this->get(route('newsletter.unsubscribe', $subscription->unsubscribe_token))
+            ->assertOk()
+            ->assertSee('Abonelikten çıkmak istediğine emin misin?');
+
+        $subscription->refresh();
+
+        $this->assertSame('subscribed', $subscription->status);
+
+        $this->post(route('newsletter.unsubscribe.destroy', $subscription->unsubscribe_token))
             ->assertRedirect(route('home'));
 
         $this->assertDatabaseHas('newsletter_subscriptions', [
             'id' => $subscription->id,
             'status' => 'unsubscribed',
         ]);
+    }
+
+    public function test_newsletter_subscription_requests_are_rate_limited(): void
+    {
+        foreach (range(1, 10) as $attempt) {
+            $response = $this->post(route('newsletter.subscribe'), [
+                'email' => "okur{$attempt}@example.com",
+                'name' => 'Okur',
+            ]);
+
+            $response->assertRedirect();
+        }
+
+        $this->post(route('newsletter.subscribe'), [
+            'email' => 'son@example.com',
+            'name' => 'Okur',
+        ])->assertStatus(429);
     }
 
     public function test_followed_category_and_collection_publish_notifications_are_stored(): void

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
@@ -74,6 +75,14 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('search', function (Request $request) {
             return Limit::perMinute(30)->by($request->ip());
+        });
+
+        RateLimiter::for('newsletter', function (Request $request) {
+            $key = $request->route('token')
+                ? 'token:'.$request->route('token')
+                : 'ip:'.$request->ip();
+
+            return Limit::perMinute(10)->by('newsletter:'.Str::lower((string) $key));
         });
 
         Vite::prefetch(concurrency: 3);

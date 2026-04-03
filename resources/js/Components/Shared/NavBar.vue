@@ -6,7 +6,7 @@ import SearchModal from './SearchModal.vue';
 import NavMenu from './NavMenu.vue';
 import {
     Search, Menu, X, Home, LayoutDashboard,
-    LogIn, UserPlus, LogOut, User, Bookmark
+    LogIn, UserPlus, LogOut, User, Bookmark, Settings
 } from 'lucide-vue-next';
 
 const page = usePage();
@@ -212,6 +212,15 @@ function initials(label = '') {
                                 Kaydedilenler
                             </Link>
 
+                            <Link
+                                :href="route('settings.edit')"
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                                @click="closeDrawer"
+                            >
+                                <Settings :size="16" class="shrink-0 text-neutral-400" />
+                                Ayarlar
+                            </Link>
+
                             <!-- Admin paneli -->
                             <Link
                                 v-if="isAdmin"
@@ -336,6 +345,14 @@ function initials(label = '') {
                             title="Hesabım"
                         >
                             <User :size="18" />
+                        </Link>
+                        <Link
+                            v-if="!isAdmin"
+                            :href="route('settings.edit')"
+                            class="p-2 rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                            title="Ayarlar"
+                        >
+                            <Settings :size="18" />
                         </Link>
                     </template>
                 </div>
