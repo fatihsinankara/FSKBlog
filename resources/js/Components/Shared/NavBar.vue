@@ -5,7 +5,7 @@ import DarkModeToggle from './DarkModeToggle.vue';
 import SearchModal from './SearchModal.vue';
 import {
     Search, Menu, X, Home, FolderOpen, LayoutDashboard,
-    LogIn, UserPlus, LogOut, User, ChevronRight
+    LogIn, UserPlus, LogOut, User, ChevronRight, Bookmark
 } from 'lucide-vue-next';
 
 const page = usePage();
@@ -158,6 +158,16 @@ function logout() {
                                     <div class="text-xs text-neutral-400 truncate">{{ user.email }}</div>
                                 </div>
                             </div>
+
+                            <!-- Kaydedilenler -->
+                            <Link
+                                :href="route('bookmarks.index')"
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                                @click="closeDrawer"
+                            >
+                                <Bookmark :size="16" class="shrink-0 text-neutral-400" />
+                                Kaydedilenler
+                            </Link>
 
                             <!-- Admin paneli -->
                             <Link

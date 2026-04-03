@@ -1,7 +1,7 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
-import { MessageCircle, Send } from 'lucide-vue-next';
+import { MessageCircle, Send, Heart } from 'lucide-vue-next';
 import Pagination from '@/Components/Shared/Pagination.vue';
 
 const props = defineProps({
@@ -33,6 +33,45 @@ function formatDate(date) {
         year: 'numeric', month: 'long', day: 'numeric',
     });
 }
+
+// --- Yorum beğeni (optimistic, fetch tabanlı) ---
+// liked: { [commentId]: boolean }, counts: { [commentId]: number }
+const liked  = ref({});
+const counts = ref({});
+
+function getLiked(comment)  { return liked.value[comment.id]  ?? false; }
+function getCount(comment)  { return counts.value[comment.id] ?? (comment.likes_count ?? 0); }
+
+async function toggleLike(comment) {
+    if (!user) return;
+
+    const wasLiked = getLiked(comment);
+    // Optimistik güncelleme
+    liked.value[comment.id]  = !wasLiked;
+    counts.value[comment.id] = getCount(comment) + (wasLiked ? -1 : 1);
+
+    try {
+        const res = await fetch(route('comments.like', comment.id), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                'Accept': 'application/json',
+            },
+        });
+        if (res.ok) {
+            const data = await res.json();
+            liked.value[comment.id]  = data.liked;
+            counts.value[comment.id] = data.count;
+        } else {
+            // Hata: geri al
+            liked.value[comment.id]  = wasLiked;
+            counts.value[comment.id] = getCount(comment) + (wasLiked ? 1 : -1);
+        }
+    } catch {
+        liked.value[comment.id]  = wasLiked;
+        counts.value[comment.id] = getCount(comment) + (wasLiked ? 1 : -1);
+    }
+}
 </script>
 
 <template>
@@ -43,22 +82,44 @@ function formatDate(date) {
             <span v-if="totalComments" class="text-sm font-normal text-neutral-500">({{ totalComments }})</span>
         </h2>
 
-        <!-- Comments list -->
+        <!-- Yorumlar listesi -->
         <div v-if="comments.length" class="space-y-6 mb-10">
             <div
                 v-for="comment in comments"
                 :key="comment.id"
-                class="flex gap-4"
+                class="flex gap-4 group/comment"
             >
                 <div class="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-semibold text-sm flex-shrink-0">
                     {{ (comment.author_name || 'A')[0].toUpperCase() }}
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 min-w-0">
                     <div class="flex items-baseline gap-2 mb-1">
                         <span class="text-sm font-medium text-neutral-900 dark:text-white">{{ comment.author_name }}</span>
                         <span class="text-xs text-neutral-400">{{ formatDate(comment.created_at) }}</span>
                     </div>
                     <p class="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">{{ comment.body }}</p>
+
+                    <!-- Beğeni butonu -->
+                    <div class="mt-2 flex items-center gap-1">
+                        <button
+                            @click="toggleLike(comment)"
+                            :disabled="!user"
+                            class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors"
+                            :class="[
+                                !user ? 'cursor-default' : 'cursor-pointer',
+                                getLiked(comment)
+                                    ? 'text-rose-500 dark:text-rose-400'
+                                    : 'text-neutral-400 dark:text-neutral-500 hover:text-rose-500 dark:hover:text-rose-400'
+                            ]"
+                            :title="!user ? 'Beğenmek için giriş yapın' : (getLiked(comment) ? 'Beğeniyi geri al' : 'Beğen')"
+                        >
+                            <Heart
+                                :size="13"
+                                :fill="getLiked(comment) ? 'currentColor' : 'none'"
+                            />
+                            <span v-if="getCount(comment) > 0">{{ getCount(comment) }}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -67,7 +128,7 @@ function formatDate(date) {
             Henüz yorum yok. İlk yorumu sen yap!
         </p>
 
-        <!-- Comment form -->
+        <!-- Yorum formu -->
         <div class="bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800">
             <h3 class="text-sm font-semibold mb-4 text-neutral-900 dark:text-white">Yorum Yaz</h3>
 
@@ -81,7 +142,7 @@ function formatDate(date) {
                     aria-hidden="true"
                 />
 
-                <!-- Guest fields -->
+                <!-- Misafir alanları -->
                 <template v-if="!user">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -101,7 +162,7 @@ function formatDate(date) {
                                 v-model="form.guest_email"
                                 type="email"
                                 placeholder="ornek@mail.com"
-                                class="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 :class="{ 'border-red-400': form.errors.guest_email }"
                             />
                             <p v-if="form.errors.guest_email" class="text-xs text-red-500 mt-1">{{ form.errors.guest_email }}</p>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bookmark;
 use App\Models\Collection;
 use App\Models\Comment;
 use App\Models\Post;
@@ -61,10 +62,15 @@ class PostController extends Controller
             session()->put('viewed_post_'.$post['id'], true);
         }
 
+        $isBookmarked = auth()->check()
+            ? Bookmark::where('user_id', auth()->id())->where('post_id', $post['id'])->exists()
+            : false;
+
         $comments = Comment::query()
             ->where('post_id', $post['id'])
             ->approved()
             ->with(['user:id,name'])
+            ->withCount('likes')
             ->latest()
             ->paginate(20, ['*'], 'comments_page')
             ->withQueryString()
@@ -84,6 +90,7 @@ class PostController extends Controller
             'post' => array_merge($post, [
                 'comments' => $comments->toArray(),
                 'collection' => $this->resolveCollectionData($post['id']),
+                'is_bookmarked' => $isBookmarked,
             ]),
             'related' => $related,
         ]);

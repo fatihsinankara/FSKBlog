@@ -2,6 +2,7 @@
 import NavBar from '@/Components/Shared/NavBar.vue';
 import Footer from '@/Components/Shared/Footer.vue';
 import FlashMessage from '@/Components/Shared/FlashMessage.vue';
+import BackToTop from '@/Components/Shared/BackToTop.vue';
 </script>
 
 <template>
@@ -12,5 +13,6 @@ import FlashMessage from '@/Components/Shared/FlashMessage.vue';
             <slot />
         </main>
         <Footer />
+        <BackToTop />
     </div>
 </template>
