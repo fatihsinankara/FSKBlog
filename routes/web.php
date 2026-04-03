@@ -35,6 +35,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('posts', Admin\PostController::class)->except(['show']);
+    Route::resource('collections', Admin\CollectionController::class)->except(['show']);
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);
     Route::resource('tags', Admin\TagController::class)->only(['index', 'store', 'destroy']);
     Route::get('cache', [Admin\CacheController::class, 'index'])->name('cache.index');

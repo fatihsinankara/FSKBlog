@@ -138,6 +138,13 @@ class Post extends Model
         return $this->belongsToMany(Tag::class);
     }
 
+    public function collections(): BelongsToMany
+    {
+        return $this->belongsToMany(Collection::class)
+            ->withPivot('part_number')
+            ->withTimestamps();
+    }
+
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);

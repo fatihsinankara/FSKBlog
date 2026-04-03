@@ -130,3 +130,16 @@ body {
 .dark .blog-prose :where(hr) {
     border-color: rgb(38 38 38);
 }
+
+.blog-prose .heading-permalink {
+    opacity: 0;
+    margin-right: 0.35em;
+    font-weight: 400;
+    color: rgb(129 140 248);
+    text-decoration: none;
+    transition: opacity 0.15s;
+}
+
+.blog-prose :where(h1, h2, h3, h4):hover .heading-permalink {
+    opacity: 1;
+}

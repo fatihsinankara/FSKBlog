@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Collection;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Support\BlogContentCache;
@@ -82,6 +83,7 @@ class PostController extends Controller
         return Inertia::render('Blog/Show', [
             'post' => array_merge($post, [
                 'comments' => $comments->toArray(),
+                'collection' => $this->resolveCollectionData($post['id']),
             ]),
             'related' => $related,
         ]);
@@ -113,5 +115,55 @@ class PostController extends Controller
             'posts' => $data['posts'],
             'query' => $data['query'],
         ]);
+    }
+
+    protected function resolveCollectionData(int $postId): ?array
+    {
+        $cache = app(BlogContentCache::class);
+
+        return $cache->remember('post.collection', [$postId], 300, function () use ($postId) {
+            $collection = Collection::published()
+                ->whereHas('posts', fn ($query) => $query->where('posts.id', $postId))
+                ->with([
+                    'posts' => fn ($query) => $query
+                        ->published()
+                        ->select('posts.id', 'posts.title', 'posts.slug')
+                        ->orderBy('collection_post.part_number'),
+                ])
+                ->first();
+
+            if (! $collection) {
+                return null;
+            }
+
+            $items = $collection->posts->map(fn (Post $item) => [
+                'id' => $item->id,
+                'title' => $item->title,
+                'slug' => $item->slug,
+                'part_number' => (int) $item->pivot->part_number,
+                'is_current' => $item->id === $postId,
+            ])->values();
+
+            $currentIndex = $items->search(fn (array $item) => $item['is_current']);
+
+            if ($currentIndex === false) {
+                return null;
+            }
+
+            $previous = $currentIndex > 0 ? $items[$currentIndex - 1] : null;
+            $next = $currentIndex < $items->count() - 1 ? $items[$currentIndex + 1] : null;
+
+            return [
+                'id' => $collection->id,
+                'title' => $collection->title,
+                'slug' => $collection->slug,
+                'description' => $collection->description,
+                'current_part' => $items[$currentIndex]['part_number'],
+                'total_parts' => $items->count(),
+                'items' => $items->all(),
+                'previous' => $previous,
+                'next' => $next,
+            ];
+        });
     }
 }

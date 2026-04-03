@@ -5,6 +5,7 @@ import PostCard from '@/Components/Blog/PostCard.vue';
 import PostMeta from '@/Components/Blog/PostMeta.vue';
 import TagBadge from '@/Components/Blog/TagBadge.vue';
 import CommentSection from '@/Components/Blog/CommentSection.vue';
+import PostCollectionNav from '@/Components/Blog/PostCollectionNav.vue';
 import { ArrowLeft } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -53,6 +54,8 @@ const props = defineProps({
                     <div class="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/10 dark:from-black/20 dark:to-white/5 pointer-events-none" />
                 </div>
             </div>
+
+            <PostCollectionNav :collection="post.collection" />
 
             <div class="max-w-2xl mx-auto relative">
                 <div class="hidden sm:block absolute -left-10 top-2 h-24 w-px bg-gradient-to-b from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
