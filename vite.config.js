@@ -25,4 +25,21 @@ export default defineConfig({
             '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
         },
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules/vue/') || id.includes('@inertiajs/vue3') || id.includes('@vueuse/core')) {
+                        return 'vendor';
+                    }
+                    if (id.includes('lucide-vue-next')) {
+                        return 'icons';
+                    }
+                    if (id.includes('@fortawesome')) {
+                        return 'fa';
+                    }
+                },
+            },
+        },
+    },
 });

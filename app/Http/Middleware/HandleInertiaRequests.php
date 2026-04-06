@@ -31,7 +31,11 @@ class HandleInertiaRequests extends Middleware
                         'email' => $request->user()->email,
                         'is_admin' => $request->user()->is_admin,
                         'email_verified_at' => $request->user()->email_verified_at,
-                        'unread_notifications_count' => $request->user()->unreadNotifications()->count(),
+                        'unread_notifications_count' => Cache::remember(
+                            'user.'.$request->user()->id.'.unread_notifications',
+                            60,
+                            fn () => $request->user()->unreadNotifications()->count()
+                        ),
                     ]
                     : null,
             ],

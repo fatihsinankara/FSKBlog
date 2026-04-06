@@ -28,7 +28,11 @@ class DashboardController extends Controller
                 'pending_comments' => Comment::where('is_approved', false)->count(),
                 'subscribers' => NewsletterSubscription::where('status', 'subscribed')->count(),
             ],
-            'recent_posts' => Post::with('category')->latest()->take(5)->get(),
+            'recent_posts' => Post::with('category:id,name,slug')
+                ->select('id', 'title', 'slug', 'status', 'category_id', 'published_at', 'views', 'created_at')
+                ->latest()
+                ->take(5)
+                ->get(),
             'top_posts_by_views' => Post::published()
                 ->select('id', 'title', 'slug', 'views')
                 ->orderByDesc('views')

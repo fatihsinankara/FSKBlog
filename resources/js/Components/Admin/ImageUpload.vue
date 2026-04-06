@@ -55,7 +55,7 @@ function remove() {
         </div>
 
         <div v-else class="relative rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700 aspect-video">
-            <img :src="preview" class="w-full h-full object-cover" />
+            <img :src="preview" alt="Yüklenen görsel önizlemesi" class="w-full h-full object-cover" />
             <button
                 type="button"
                 @click="remove"

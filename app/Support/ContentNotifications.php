@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\User;
 use App\Notifications\NewCategoryPostNotification;
 use App\Notifications\NewCollectionPostNotification;
+use Illuminate\Support\Facades\Cache;
 
 class ContentNotifications
 {
@@ -23,6 +24,7 @@ class ContentNotifications
 
             if ($users->isNotEmpty()) {
                 $users->each->notify(new NewCategoryPostNotification($post));
+                $this->forgetNotificationCache($users);
             }
         }
 
@@ -45,6 +47,12 @@ class ContentNotifications
 
         if ($users->isNotEmpty()) {
             $users->each->notify(new NewCollectionPostNotification($collection, $post, $partNumber));
+            $this->forgetNotificationCache($users);
         }
+    }
+
+    protected function forgetNotificationCache($users): void
+    {
+        $users->each(fn (User $user) => Cache::forget('user.'.$user->id.'.unread_notifications'));
     }
 }

@@ -1,21 +1,24 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import ConfirmDialog from '@/Components/Shared/ConfirmDialog.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2, ExternalLink } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useFormatDate';
+import { useConfirm } from '@/composables/useConfirm';
 
 defineProps({
     pages: Array,
 });
 
+const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
+
 function destroy(id) {
-    if (confirm('Bu sayfayı silmek istediğine emin misin?')) {
+    confirm('Bu sayfayı silmek istediğine emin misin?', () => {
         router.delete(route('admin.pages.destroy', id), { preserveScroll: true });
-    }
+    });
 }
 
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
+
 </script>
 
 <template>
@@ -102,5 +105,11 @@ function formatDate(date) {
                 Henüz sayfa oluşturulmadı.
             </div>
         </div>
+        <ConfirmDialog
+            :open="confirmState.open"
+            :message="confirmState.message"
+            @confirm="handleConfirm"
+            @cancel="handleCancel"
+        />
     </AdminLayout>
 </template>

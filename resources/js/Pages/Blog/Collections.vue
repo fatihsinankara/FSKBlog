@@ -3,14 +3,11 @@ import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import SiteHead from '@/Components/Shared/SiteHead.vue';
 import { BookOpen, ArrowRight } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useFormatDate';
 
 defineProps({
     collections: Array,
 });
-
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
 </script>
 
 <template>

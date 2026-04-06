@@ -51,7 +51,7 @@ class SitemapController extends Controller
         $posts = Post::published()
             ->select('slug', 'updated_at')
             ->latest('updated_at')
-            ->get();
+            ->cursor();
 
         return response()
             ->view('sitemap.posts', compact('posts'))
@@ -62,7 +62,7 @@ class SitemapController extends Controller
     {
         $categories = Category::select('slug', 'updated_at')
             ->latest('updated_at')
-            ->get();
+            ->cursor();
 
         return response()
             ->view('sitemap.categories', compact('categories'))
@@ -73,7 +73,7 @@ class SitemapController extends Controller
     {
         $tags = Tag::select('slug', 'updated_at')
             ->latest('updated_at')
-            ->get();
+            ->cursor();
 
         return response()
             ->view('sitemap.tags', compact('tags'))

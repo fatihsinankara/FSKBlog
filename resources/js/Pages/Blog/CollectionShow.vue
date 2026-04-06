@@ -5,6 +5,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import SiteHead from '@/Components/Shared/SiteHead.vue';
 import NewsletterSignup from '@/Components/Shared/NewsletterSignup.vue';
 import { Bell, BellOff, ArrowRight, BookOpen } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useFormatDate';
 
 const props = defineProps({
     collection: Object,
@@ -20,9 +21,7 @@ function toggleFollow() {
     });
 }
 
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
+
 </script>
 
 <template>

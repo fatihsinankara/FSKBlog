@@ -90,7 +90,7 @@ class CategoryController extends Controller
             'description' => ['nullable', 'string', 'max:500'],
             'color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'icon' => ['nullable', 'string', 'max:100'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,webp,gif', 'max:2048'],
             'remove_image' => ['boolean'],
         ];
     }

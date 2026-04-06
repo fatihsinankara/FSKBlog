@@ -77,6 +77,10 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(30)->by($request->ip());
         });
 
+        RateLimiter::for('register', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
         RateLimiter::for('newsletter', function (Request $request) {
             $key = $request->route('token')
                 ? 'token:'.$request->route('token')

@@ -36,7 +36,7 @@ function onKeydown(e) {
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
         >
-            <div v-if="open" class="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4" @keydown="onKeydown">
+            <div v-if="open" class="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4" @keydown="onKeydown" role="dialog" aria-modal="true" aria-label="Arama">
                 <!-- Backdrop -->
                 <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="emit('close')" />
 
@@ -51,7 +51,7 @@ function onKeydown(e) {
                             placeholder="Yazılarda ara..."
                             class="flex-1 bg-transparent text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-sm outline-none"
                         />
-                        <button type="button" @click="emit('close')" class="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200">
+                        <button type="button" @click="emit('close')" class="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200" aria-label="Aramayı kapat">
                             <X :size="18" />
                         </button>
                     </form>

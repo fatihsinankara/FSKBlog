@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import StatsCard from '@/Components/Admin/StatsCard.vue';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, Eye, FileEdit, FileText, Pencil, Send } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useFormatDate';
 
 defineProps({
     stats: Object,
@@ -16,9 +17,7 @@ defineProps({
     newsletter_growth: Array,
 });
 
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
+
 </script>
 
 <template>

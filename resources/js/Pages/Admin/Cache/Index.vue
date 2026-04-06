@@ -2,19 +2,15 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { router } from '@inertiajs/vue3';
 import { Database, RefreshCw, Trash2, ShieldCheck } from 'lucide-vue-next';
+import { formatDateTime } from '@/composables/useFormatDate';
 
 const props = defineProps({
     status: Object,
     recent_keys: Array,
 });
 
-const formatter = new Intl.DateTimeFormat('tr-TR', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-});
-
 function formatDate(value) {
-    return value ? formatter.format(new Date(value)) : 'Bilinmiyor';
+    return value ? formatDateTime(value) : 'Bilinmiyor';
 }
 
 function clearCache() {

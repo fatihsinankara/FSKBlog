@@ -2,16 +2,13 @@
 import AccountLayout from '@/Layouts/AccountLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Bell, Bookmark, BookOpenCheck, FolderHeart, Layers3, Settings } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useFormatDate';
 
 defineProps({
     stats: Object,
     recent_bookmarks: Array,
     recent_notifications: Array,
 });
-
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
 
 const cards = [
     { key: 'saved_bookmarks', label: 'Kaydedilen', icon: Bookmark },

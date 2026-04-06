@@ -1,17 +1,12 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
 import { Clock, Calendar } from 'lucide-vue-next';
+import { formatDateLong as formatDate } from '@/composables/useFormatDate';
 
 defineProps({
     post: Object,
     showCategory: { type: Boolean, default: true },
 });
-
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', {
-        year: 'numeric', month: 'long', day: 'numeric',
-    });
-}
 </script>
 
 <template>

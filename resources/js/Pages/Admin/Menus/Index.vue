@@ -1,7 +1,9 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import ConfirmDialog from '@/Components/Shared/ConfirmDialog.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2, ChevronRight, ExternalLink } from 'lucide-vue-next';
+import { useConfirm } from '@/composables/useConfirm';
 
 const props = defineProps({
     items: Array,
@@ -14,10 +16,12 @@ function displayTarget(item) {
     return item.target;
 }
 
+const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
+
 function destroy(id) {
-    if (confirm('Bu menü öğesini silmek istediğine emin misin?')) {
+    confirm('Bu menü öğesini silmek istediğine emin misin?', () => {
         router.delete(route('admin.menus.destroy', id));
-    }
+    });
 }
 
 function moveUp(list, index) {
@@ -159,5 +163,12 @@ function reorder(list, fromIndex, toIndex) {
                 </template>
             </div>
         </div>
+
+        <ConfirmDialog
+            :open="confirmState.open"
+            :message="confirmState.message"
+            @confirm="handleConfirm"
+            @cancel="handleCancel"
+        />
     </AdminLayout>
 </template>

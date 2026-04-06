@@ -1,5 +1,6 @@
 <script setup>
 import { Save } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useFormatDate';
 
 defineProps({
     form: Object,
@@ -18,17 +19,7 @@ function toggleItem(item, checked) {
     }
 }
 
-function formatDate(value) {
-    if (!value) {
-        return 'Tarih yok';
-    }
 
-    return new Date(value).toLocaleDateString('tr-TR', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    });
-}
 </script>
 
 <template>
@@ -125,7 +116,7 @@ function formatDate(value) {
                                         {{ item.title }}
                                     </p>
                                     <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                        {{ item.category_name || 'Kategorisiz' }} • {{ formatDate(item.published_at) }}
+                                        {{ item.category_name || 'Kategorisiz' }} • {{ formatDate(item.published_at) || 'Tarih yok' }}
                                     </p>
                                 </div>
                             </div>

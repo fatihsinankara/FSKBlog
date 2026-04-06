@@ -1,27 +1,30 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Shared/Pagination.vue';
+import ConfirmDialog from '@/Components/Shared/ConfirmDialog.vue';
 import { router, Link } from '@inertiajs/vue3';
 import { Check, Trash2, ExternalLink } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useFormatDate';
+import { useConfirm } from '@/composables/useConfirm';
 
 defineProps({
     pending: Object,
     approved: Object,
 });
 
+const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
+
 function approve(id) {
     router.patch(route('admin.comments.approve', id), {}, { preserveScroll: true });
 }
 
 function destroy(id) {
-    if (confirm('Bu yorumu silmek istediğine emin misin?')) {
+    confirm('Bu yorumu silmek istediğine emin misin?', () => {
         router.delete(route('admin.comments.destroy', id), { preserveScroll: true });
-    }
+    });
 }
 
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
+
 </script>
 
 <template>
@@ -102,5 +105,11 @@ function formatDate(date) {
             </div>
             <Pagination :links="approved.links" />
         </div>
+        <ConfirmDialog
+            :open="confirmState.open"
+            :message="confirmState.message"
+            @confirm="handleConfirm"
+            @cancel="handleCancel"
+        />
     </AdminLayout>
 </template>

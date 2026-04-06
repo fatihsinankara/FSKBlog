@@ -1,8 +1,11 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Shared/Pagination.vue';
+import ConfirmDialog from '@/Components/Shared/ConfirmDialog.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2, Shield, ShieldOff, Search, MailCheck } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useFormatDate';
+import { useConfirm } from '@/composables/useConfirm';
 
 const props = defineProps({
     users: Object,
@@ -20,17 +23,17 @@ function submitSearch() {
     });
 }
 
+const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
+
 function destroyUser(user) {
-    if (confirm(`${user.name} kullanıcısını silmek istediğine emin misin?`)) {
+    confirm(`${user.name} kullanıcısını silmek istediğine emin misin?`, () => {
         router.delete(route('admin.users.destroy', user.id), {
             preserveScroll: true,
         });
-    }
+    });
 }
 
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
+
 </script>
 
 <template>
@@ -127,5 +130,12 @@ function formatDate(date) {
         </div>
 
         <Pagination v-if="users.links" :links="users.links" />
+
+        <ConfirmDialog
+            :open="confirmState.open"
+            :message="confirmState.message"
+            @confirm="handleConfirm"
+            @cancel="handleCancel"
+        />
     </AdminLayout>
 </template>

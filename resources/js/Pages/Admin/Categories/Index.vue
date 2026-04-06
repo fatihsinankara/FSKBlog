@@ -1,16 +1,20 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import ConfirmDialog from '@/Components/Shared/ConfirmDialog.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2 } from 'lucide-vue-next';
+import { useConfirm } from '@/composables/useConfirm';
 
 defineProps({
     categories: Array,
 });
 
+const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
+
 function destroy(id) {
-    if (confirm('Bu kategoriyi silmek istediğine emin misin?')) {
+    confirm('Bu kategoriyi silmek istediğine emin misin?', () => {
         router.delete(route('admin.categories.destroy', id));
-    }
+    });
 }
 </script>
 
@@ -41,7 +45,7 @@ function destroy(id) {
                     <div class="flex items-center justify-between gap-4">
                         <div class="flex min-w-0 items-center gap-3">
                             <div class="h-10 w-10 overflow-hidden rounded-xl shrink-0">
-                                <img v-if="category.image_url" :src="category.image_url" class="h-full w-full object-cover" />
+                                <img v-if="category.image_url" :src="category.image_url" :alt="category.name" class="h-full w-full object-cover" />
                                 <div
                                     v-else
                                     class="flex h-full w-full items-center justify-center"
@@ -59,10 +63,10 @@ function destroy(id) {
                         </div>
 
                         <div class="flex items-center gap-1">
-                            <Link :href="route('admin.categories.edit', category.id)" class="p-2 text-neutral-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">
+                            <Link :href="route('admin.categories.edit', category.id)" class="p-2 text-neutral-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400" :aria-label="'Düzenle: ' + category.name">
                                 <Pencil :size="15" />
                             </Link>
-                            <button @click="destroy(category.id)" class="p-2 text-neutral-400 transition-colors hover:text-red-500">
+                            <button @click="destroy(category.id)" class="p-2 text-neutral-400 transition-colors hover:text-red-500" :aria-label="'Sil: ' + category.name">
                                 <Trash2 :size="15" />
                             </button>
                         </div>
@@ -74,5 +78,11 @@ function destroy(id) {
                 </div>
             </div>
         </div>
+        <ConfirmDialog
+            :open="confirmState.open"
+            :message="confirmState.message"
+            @confirm="handleConfirm"
+            @cancel="handleCancel"
+        />
     </AdminLayout>
 </template>

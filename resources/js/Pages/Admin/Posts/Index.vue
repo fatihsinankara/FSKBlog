@@ -1,22 +1,25 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Shared/Pagination.vue';
+import ConfirmDialog from '@/Components/Shared/ConfirmDialog.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2, Eye, ExternalLink } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useFormatDate';
+import { useConfirm } from '@/composables/useConfirm';
 
 defineProps({
     posts: Object,
 });
 
+const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
+
 function destroy(id) {
-    if (confirm('Bu yazıyı silmek istediğine emin misin?')) {
+    confirm('Bu yazıyı silmek istediğine emin misin?', () => {
         router.delete(route('admin.posts.destroy', id), { preserveScroll: true });
-    }
+    });
 }
 
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
+
 </script>
 
 <template>
@@ -90,18 +93,21 @@ function formatDate(date) {
                                         :href="route('posts.show', post.slug)"
                                         target="_blank"
                                         class="p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+                                        :aria-label="'Görüntüle: ' + post.title"
                                     >
                                         <ExternalLink :size="14" />
                                     </Link>
                                     <Link
                                         :href="route('admin.posts.edit', post.id)"
                                         class="p-1 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                        :aria-label="'Düzenle: ' + post.title"
                                     >
                                         <Pencil :size="14" />
                                     </Link>
                                     <button
                                         @click="destroy(post.id)"
                                         class="p-1 text-neutral-400 hover:text-red-500 transition-colors"
+                                        :aria-label="'Sil: ' + post.title"
                                     >
                                         <Trash2 :size="14" />
                                     </button>
@@ -114,5 +120,12 @@ function formatDate(date) {
         </div>
 
         <Pagination :links="posts.links" />
+
+        <ConfirmDialog
+            :open="confirmState.open"
+            :message="confirmState.message"
+            @confirm="handleConfirm"
+            @cancel="handleCancel"
+        />
     </AdminLayout>
 </template>

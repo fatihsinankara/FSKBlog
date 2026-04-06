@@ -1,6 +1,10 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { Columns2, FileText } from 'lucide-vue-next';
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import {
+    Bold, Italic, Heading2, Heading3, Link2, Image, Code, CodeSquare,
+    List, ListOrdered, Quote, Minus, Eye, Pencil, Columns2, Undo2, Redo2,
+    Strikethrough, Table,
+} from 'lucide-vue-next';
 
 const props = defineProps({
     modelValue: String,
@@ -8,8 +12,28 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue']);
 
-const mode = ref('split');
+const textarea = ref(null);
+const mode = ref('write');
+const isLgScreen = ref(false);
+let resizeObserver = null;
 
+// --- Responsive: detect lg+ screens ---
+function checkScreen() {
+    isLgScreen.value = window.innerWidth >= 1024;
+    if (!isLgScreen.value && mode.value === 'split') {
+        mode.value = 'write';
+    }
+}
+
+onMounted(() => {
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+});
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', checkScreen);
+});
+
+// --- Preview renderer (basic markdown to HTML) ---
 function escapeHtml(value) {
     return value
         .replaceAll('&', '&amp;')
@@ -23,69 +47,255 @@ const rendered = computed(() => {
     if (!props.modelValue) return '<p class="text-neutral-400 text-sm italic">Önizleme burada görünecek...</p>';
 
     const html = escapeHtml(props.modelValue)
-        .replace(/^#{6}\s(.+)/gm, '<h6>$1</h6>')
-        .replace(/^#{5}\s(.+)/gm, '<h5>$1</h5>')
-        .replace(/^#{4}\s(.+)/gm, '<h4>$1</h4>')
-        .replace(/^#{3}\s(.+)/gm, '<h3>$1</h3>')
-        .replace(/^#{2}\s(.+)/gm, '<h2>$1</h2>')
-        .replace(/^#{1}\s(.+)/gm, '<h1>$1</h1>')
+        .replace(/^######\s(.+)/gm, '<h6>$1</h6>')
+        .replace(/^#####\s(.+)/gm, '<h5>$1</h5>')
+        .replace(/^####\s(.+)/gm, '<h4>$1</h4>')
+        .replace(/^###\s(.+)/gm, '<h3>$1</h3>')
+        .replace(/^##\s(.+)/gm, '<h2>$1</h2>')
+        .replace(/^#\s(.+)/gm, '<h1>$1</h1>')
+        .replace(/^&gt;\s(.+)/gm, '<blockquote><p>$1</p></blockquote>')
+        .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+        .replace(/~~(.+?)~~/g, '<del>$1</del>')
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.+?)\*/g, '<em>$1</em>')
         .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="rounded-lg max-w-full" />')
+        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-indigo-600 underline">$1</a>')
+        .replace(/^---$/gm, '<hr />')
+        .replace(/^\d+\.\s(.+)/gm, '<li>$1</li>')
         .replace(/^- (.+)/gm, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
         .replace(/\n\n/g, '</p><p>')
-        .replace(/^(?!<[h1-6upc])/gm, '');
+        .replace(/\n/g, '<br>');
 
-    return html;
+    return `<p>${html}</p>`;
 });
+
+// --- Toolbar actions ---
+function getSelection() {
+    const el = textarea.value;
+    return {
+        start: el.selectionStart,
+        end: el.selectionEnd,
+        text: props.modelValue?.substring(el.selectionStart, el.selectionEnd) || '',
+    };
+}
+
+function replaceSelection(before, after, placeholder = '') {
+    const el = textarea.value;
+    const sel = getSelection();
+    const content = sel.text || placeholder;
+    const val = props.modelValue || '';
+
+    const newValue = val.substring(0, sel.start) + before + content + after + val.substring(sel.end);
+    emit('update:modelValue', newValue);
+
+    nextTick(() => {
+        el.focus();
+        const cursorStart = sel.start + before.length;
+        const cursorEnd = cursorStart + content.length;
+        el.setSelectionRange(cursorStart, cursorEnd);
+    });
+}
+
+function wrapLine(prefix) {
+    const el = textarea.value;
+    const val = props.modelValue || '';
+    const start = el.selectionStart;
+
+    // Find the start of the current line
+    const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+    const lineEnd = val.indexOf('\n', start);
+    const end = lineEnd === -1 ? val.length : lineEnd;
+    const line = val.substring(lineStart, end);
+
+    // Toggle: if line already starts with prefix, remove it
+    if (line.startsWith(prefix)) {
+        const newValue = val.substring(0, lineStart) + line.substring(prefix.length) + val.substring(end);
+        emit('update:modelValue', newValue);
+        nextTick(() => {
+            el.focus();
+            el.setSelectionRange(start - prefix.length, start - prefix.length);
+        });
+    } else {
+        const newValue = val.substring(0, lineStart) + prefix + line + val.substring(end);
+        emit('update:modelValue', newValue);
+        nextTick(() => {
+            el.focus();
+            el.setSelectionRange(start + prefix.length, start + prefix.length);
+        });
+    }
+}
+
+const actions = [
+    { icon: Bold, label: 'Kalın', shortcut: 'Ctrl+B', action: () => replaceSelection('**', '**', 'kalın metin') },
+    { icon: Italic, label: 'İtalik', shortcut: 'Ctrl+I', action: () => replaceSelection('*', '*', 'italik metin') },
+    { icon: Strikethrough, label: 'Üstü çizili', action: () => replaceSelection('~~', '~~', 'üstü çizili') },
+    { divider: true },
+    { icon: Heading2, label: 'Başlık 2', action: () => wrapLine('## ') },
+    { icon: Heading3, label: 'Başlık 3', action: () => wrapLine('### ') },
+    { divider: true },
+    { icon: List, label: 'Liste', action: () => wrapLine('- ') },
+    { icon: ListOrdered, label: 'Sıralı liste', action: () => wrapLine('1. ') },
+    { icon: Quote, label: 'Alıntı', action: () => wrapLine('> ') },
+    { divider: true },
+    { icon: Code, label: 'Kod', shortcut: 'Ctrl+E', action: () => replaceSelection('`', '`', 'kod') },
+    { icon: CodeSquare, label: 'Kod bloğu', action: () => replaceSelection('```\n', '\n```', 'kod bloğu') },
+    { divider: true },
+    { icon: Link2, label: 'Link', shortcut: 'Ctrl+K', action: () => replaceSelection('[', '](url)', 'link metni') },
+    { icon: Image, label: 'Görsel', action: () => replaceSelection('![', '](url)', 'alt text') },
+    { icon: Table, label: 'Tablo', action: () => replaceSelection('\n| Başlık | Başlık |\n|--------|--------|\n| ', ' | hücre |\n', 'hücre') },
+    { icon: Minus, label: 'Ayırıcı çizgi', action: () => replaceSelection('\n---\n', '', '') },
+];
+
+// --- Keyboard shortcuts ---
+function onKeydown(e) {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        const key = e.key.toLowerCase();
+        if (key === 'b') {
+            e.preventDefault();
+            replaceSelection('**', '**', 'kalın metin');
+        } else if (key === 'i') {
+            e.preventDefault();
+            replaceSelection('*', '*', 'italik metin');
+        } else if (key === 'e') {
+            e.preventDefault();
+            replaceSelection('`', '`', 'kod');
+        } else if (key === 'k') {
+            e.preventDefault();
+            replaceSelection('[', '](url)', 'link metni');
+        }
+    }
+
+    // Tab key for indentation
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const el = textarea.value;
+        const start = el.selectionStart;
+        const val = props.modelValue || '';
+        const newValue = val.substring(0, start) + '    ' + val.substring(el.selectionEnd);
+        emit('update:modelValue', newValue);
+        nextTick(() => {
+            el.focus();
+            el.setSelectionRange(start + 4, start + 4);
+        });
+    }
+}
 </script>
 
 <template>
     <div>
         <!-- Toolbar -->
-        <div class="flex items-center gap-2 mb-2">
-            <button
-                type="button"
-                @click="mode = 'split'"
-                class="flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors"
-                :class="mode === 'split' ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'"
-            >
-                <Columns2 :size="14" /> Split
-            </button>
-            <button
-                type="button"
-                @click="mode = 'write'"
-                class="flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors"
-                :class="mode === 'write' ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'"
-            >
-                <FileText :size="14" /> Yaz
-            </button>
+        <div class="rounded-t-xl border border-b-0 bg-neutral-50 dark:bg-neutral-950"
+             :class="error ? 'border-red-400' : 'border-neutral-200 dark:border-neutral-700'">
+
+            <!-- Top row: formatting buttons -->
+            <div class="flex items-center gap-0.5 px-2 py-1.5 overflow-x-auto scrollbar-none">
+                <template v-for="(item, i) in actions" :key="i">
+                    <div v-if="item.divider" class="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-700 shrink-0 hidden sm:block" />
+                    <button
+                        v-else
+                        type="button"
+                        @click="item.action"
+                        :title="item.label + (item.shortcut ? ` (${item.shortcut})` : '')"
+                        :aria-label="item.label"
+                        class="flex items-center justify-center w-8 h-8 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 transition-colors shrink-0"
+                    >
+                        <component :is="item.icon" :size="15" />
+                    </button>
+                </template>
+
+                <!-- Spacer -->
+                <div class="flex-1" />
+
+                <!-- Mode switches -->
+                <div class="flex items-center gap-0.5 rounded-lg bg-neutral-200/60 dark:bg-neutral-800 p-0.5 shrink-0">
+                    <button
+                        type="button"
+                        @click="mode = 'write'"
+                        :title="'Yazma modu'"
+                        class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors"
+                        :class="mode === 'write'
+                            ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm'
+                            : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'"
+                    >
+                        <Pencil :size="12" />
+                        <span class="hidden sm:inline">Yaz</span>
+                    </button>
+                    <button
+                        v-if="isLgScreen"
+                        type="button"
+                        @click="mode = 'split'"
+                        :title="'Bölünmüş görünüm'"
+                        class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors"
+                        :class="mode === 'split'
+                            ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm'
+                            : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'"
+                    >
+                        <Columns2 :size="12" />
+                        <span class="hidden sm:inline">Split</span>
+                    </button>
+                    <button
+                        type="button"
+                        @click="mode = 'preview'"
+                        :title="'Önizleme'"
+                        class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors"
+                        :class="mode === 'preview'
+                            ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm'
+                            : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'"
+                    >
+                        <Eye :size="12" />
+                        <span class="hidden sm:inline">Önizle</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
+        <!-- Editor body -->
         <div
-            class="border rounded-xl overflow-hidden"
+            class="border rounded-b-xl overflow-hidden"
             :class="error ? 'border-red-400' : 'border-neutral-200 dark:border-neutral-700'"
-            :style="{ display: 'grid', gridTemplateColumns: mode === 'split' ? '1fr 1fr' : '1fr' }"
         >
-            <!-- Editor -->
-            <textarea
-                :value="modelValue"
-                @input="emit('update:modelValue', $event.target.value)"
-                rows="20"
-                placeholder="# Başlık&#10;&#10;Yazını burada **Markdown** formatında yaz..."
-                class="w-full p-4 text-sm font-mono bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 resize-none outline-none"
-                :class="mode === 'split' ? 'border-r border-neutral-200 dark:border-neutral-700' : ''"
-            />
-
-            <!-- Preview -->
             <div
-                v-if="mode === 'split'"
-                class="p-4 overflow-auto bg-neutral-50 dark:bg-neutral-950 prose prose-sm prose-neutral dark:prose-invert max-w-none"
-                v-html="rendered"
-            />
+                class="grid"
+                :class="{
+                    'grid-cols-1': mode !== 'split',
+                    'grid-cols-2': mode === 'split',
+                }"
+            >
+                <!-- Textarea -->
+                <textarea
+                    v-show="mode !== 'preview'"
+                    ref="textarea"
+                    :value="modelValue"
+                    @input="emit('update:modelValue', $event.target.value)"
+                    @keydown="onKeydown"
+                    rows="22"
+                    placeholder="# Başlık&#10;&#10;Yazını burada **Markdown** formatında yaz..."
+                    class="w-full p-4 text-sm leading-relaxed font-mono bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 resize-y outline-none min-h-[400px]"
+                    :class="mode === 'split' ? 'border-r border-neutral-200 dark:border-neutral-700' : ''"
+                />
+
+                <!-- Preview -->
+                <div
+                    v-show="mode === 'split' || mode === 'preview'"
+                    class="p-4 overflow-auto bg-neutral-50/50 dark:bg-neutral-950/50 prose prose-sm prose-neutral dark:prose-invert max-w-none min-h-[400px]"
+                    :class="{ 'max-h-[600px]': mode === 'split' }"
+                    v-html="rendered"
+                />
+            </div>
         </div>
 
-        <p v-if="error" class="text-xs text-red-500 mt-1">{{ error }}</p>
+        <!-- Footer hints -->
+        <div class="mt-1.5 flex items-center justify-between">
+            <p v-if="error" class="text-xs text-red-500">{{ error }}</p>
+            <p v-else class="text-[10px] text-neutral-400 dark:text-neutral-500">
+                Markdown desteklenir.
+                <span class="hidden sm:inline">
+                    <kbd class="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-[10px]">Ctrl+B</kbd> kalın,
+                    <kbd class="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-[10px]">Ctrl+I</kbd> italik,
+                    <kbd class="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-[10px]">Ctrl+K</kbd> link
+                </span>
+            </p>
+        </div>
     </div>
 </template>

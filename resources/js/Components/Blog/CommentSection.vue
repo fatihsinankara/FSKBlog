@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { MessageCircle, Send, Heart, CornerDownRight } from 'lucide-vue-next';
 import Pagination from '@/Components/Shared/Pagination.vue';
+import { formatDateLong as formatDate } from '@/composables/useFormatDate';
 
 const props = defineProps({
     post: Object,
@@ -30,12 +31,6 @@ function submit() {
             form.reset('body', 'guest_name', 'guest_email', 'website', 'parent_id');
             replyingTo.value = null;
         },
-    });
-}
-
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('tr-TR', {
-        year: 'numeric', month: 'long', day: 'numeric',
     });
 }
 
@@ -127,6 +122,7 @@ function cancelReply() {
                                     : 'text-neutral-400 dark:text-neutral-500 hover:text-rose-500 dark:hover:text-rose-400'
                             ]"
                             :title="!user ? 'Beğenmek için giriş yapın' : (getLiked(comment) ? 'Beğeniyi geri al' : 'Beğen')"
+                            :aria-label="getLiked(comment) ? 'Beğeniyi geri al' : 'Yorumu beğen'"
                         >
                             <Heart
                                 :size="13"
@@ -138,6 +134,7 @@ function cancelReply() {
                             type="button"
                             class="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-neutral-400 transition-colors hover:text-indigo-500 dark:text-neutral-500 dark:hover:text-indigo-300"
                             @click="startReply(comment)"
+                            :aria-label="'Yanıtla: ' + comment.author_name"
                         >
                             <CornerDownRight :size="13" />
                             Yanıtla
@@ -166,6 +163,7 @@ function cancelReply() {
                                                 ? 'text-rose-500 dark:text-rose-400'
                                                 : 'text-neutral-400 dark:text-neutral-500 hover:text-rose-500 dark:hover:text-rose-400'
                                         ]"
+                                        :aria-label="getLiked(reply) ? 'Beğeniyi geri al' : 'Yanıtı beğen'"
                                     >
                                         <Heart :size="13" :fill="getLiked(reply) ? 'currentColor' : 'none'" />
                                         <span v-if="getCount(reply) > 0">{{ getCount(reply) }}</span>
