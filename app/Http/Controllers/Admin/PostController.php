@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Services\ImageProcessor;
 use App\Support\ContentNotifications;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,7 +37,7 @@ class PostController extends Controller
         ]);
     }
 
-    public function store(Request $request, ContentNotifications $notifications): RedirectResponse
+    public function store(Request $request, ContentNotifications $notifications, ImageProcessor $processor): RedirectResponse
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -54,16 +55,21 @@ class PostController extends Controller
             'published_at' => ['nullable', 'date'],
         ]);
 
-        if ($request->hasFile('featured_image')) {
-            $validated['featured_image'] = $request->file('featured_image')
-                ->store('posts/images', 'public');
-        }
+        $uploadedImage = $request->file('featured_image');
+        unset($validated['featured_image']);
 
         if ($validated['status'] === 'published' && empty($validated['published_at'])) {
             $validated['published_at'] = now();
         }
 
         $post = Post::create(array_merge($validated, ['user_id' => $request->user()->id]));
+
+        if ($uploadedImage) {
+            $post->update([
+                'featured_image' => $processor->processWithSlug($uploadedImage, 'posts/images', $post->slug),
+            ]);
+        }
+
         $post->tags()->sync($request->input('tag_ids', []));
 
         if ($this->isVisible($post)) {
@@ -84,7 +90,7 @@ class PostController extends Controller
         ]);
     }
 
-    public function update(Request $request, Post $post, ContentNotifications $notifications): RedirectResponse
+    public function update(Request $request, Post $post, ContentNotifications $notifications, ImageProcessor $processor): RedirectResponse
     {
         $wasVisible = $this->isVisible($post);
 
@@ -109,8 +115,11 @@ class PostController extends Controller
             if ($post->featured_image) {
                 Storage::disk('public')->delete($post->featured_image);
             }
-            $validated['featured_image'] = $request->file('featured_image')
-                ->store('posts/images', 'public');
+            $validated['featured_image'] = $processor->processWithSlug(
+                $request->file('featured_image'),
+                'posts/images',
+                $post->slug,
+            );
         } else {
             unset($validated['featured_image']);
         }

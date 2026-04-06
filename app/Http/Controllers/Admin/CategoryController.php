@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\ImageProcessor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -26,12 +27,12 @@ class CategoryController extends Controller
         return Inertia::render('Admin/Categories/Create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ImageProcessor $processor): RedirectResponse
     {
         $validated = $request->validate($this->rules());
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('categories/images', 'public');
+            $validated['image'] = $processor->process($request->file('image'), 'categories/images');
         }
 
         Category::create($validated);
@@ -47,7 +48,7 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function update(Request $request, Category $category): RedirectResponse
+    public function update(Request $request, Category $category, ImageProcessor $processor): RedirectResponse
     {
         $validated = $request->validate($this->rules($category));
 
@@ -55,7 +56,7 @@ class CategoryController extends Controller
             if ($category->image) {
                 Storage::disk('public')->delete($category->image);
             }
-            $validated['image'] = $request->file('image')->store('categories/images', 'public');
+            $validated['image'] = $processor->process($request->file('image'), 'categories/images');
         } elseif ($request->boolean('remove_image')) {
             if ($category->image) {
                 Storage::disk('public')->delete($category->image);

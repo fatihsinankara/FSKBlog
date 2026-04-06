@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
+use App\Services\ImageProcessor;
 use App\Support\SiteSettings;
 use App\Support\SnippetSanitizer;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,7 @@ class SettingController extends Controller
         ]);
     }
 
-    public function update(Request $request, SiteSettings $siteSettings): RedirectResponse
+    public function update(Request $request, SiteSettings $siteSettings, ImageProcessor $processor): RedirectResponse
     {
         $validated = $request->validate([
             'site_name' => ['required', 'string', 'max:255'],
@@ -46,7 +47,7 @@ class SettingController extends Controller
         $this->validateSnippets($validated);
 
         $settings = $siteSettings->current();
-        $validated = $this->syncUploads($request, $settings, $validated);
+        $validated = $this->syncUploads($request, $settings, $validated, $processor);
 
         unset($validated['remove_logo'], $validated['remove_favicon'], $validated['remove_default_og_image']);
 
@@ -73,8 +74,10 @@ class SettingController extends Controller
         }
     }
 
-    protected function syncUploads(Request $request, SiteSetting $settings, array $validated): array
+    protected function syncUploads(Request $request, SiteSetting $settings, array $validated, ImageProcessor $processor): array
     {
+        $webpFields = ['default_og_image'];
+
         foreach ([
             'logo' => 'site/logo',
             'favicon' => 'site/favicon',
@@ -85,7 +88,9 @@ class SettingController extends Controller
                     Storage::disk('public')->delete($settings->{$field});
                 }
 
-                $validated[$field] = $request->file($field)->store($directory, 'public');
+                $validated[$field] = in_array($field, $webpFields)
+                    ? $processor->process($request->file($field), $directory)
+                    : $request->file($field)->store($directory, 'public');
 
                 continue;
             }

@@ -88,6 +88,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('menus/reorder', [Admin\MenuController::class, 'reorder'])->name('menus.reorder');
     Route::resource('users', Admin\UserController::class)->except(['show']);
 
+    Route::post('upload/image', [Admin\UploadController::class, 'image'])->name('upload.image');
+
     Route::get('cache', [Admin\CacheController::class, 'index'])->name('cache.index');
     Route::post('cache/clear', [Admin\CacheController::class, 'clear'])->name('cache.clear');
 
