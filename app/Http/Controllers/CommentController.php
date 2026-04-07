@@ -6,13 +6,14 @@ use App\Models\Comment;
 use App\Models\Post;
 use App\Notifications\CommentReplyNotification;
 use App\Support\PostMetrics;
+use App\Support\SpamFilter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class CommentController extends Controller
 {
-    public function store(Request $request, Post $post, PostMetrics $metrics): RedirectResponse
+    public function store(Request $request, Post $post, PostMetrics $metrics, SpamFilter $spamFilter): RedirectResponse
     {
         if (filled($request->input('website'))) {
             throw ValidationException::withMessages([
@@ -32,6 +33,16 @@ class CommentController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        if (! $request->user()?->is_admin && $spamFilter->isSpam(
+            $validated['body'],
+            $validated['guest_name'] ?? null,
+            $validated['guest_email'] ?? null,
+        )) {
+            throw ValidationException::withMessages([
+                'body' => 'Yorumunuz spam olarak algılandı.',
+            ]);
+        }
 
         $parent = null;
 

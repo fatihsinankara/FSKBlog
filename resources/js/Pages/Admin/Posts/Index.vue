@@ -3,13 +3,17 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Shared/Pagination.vue';
 import ConfirmDialog from '@/Components/Shared/ConfirmDialog.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { Plus, Pencil, Trash2, Eye, ExternalLink } from 'lucide-vue-next';
+import { Plus, Pencil, Trash2, Eye, ExternalLink, Clock } from 'lucide-vue-next';
 import { formatDate } from '@/composables/useFormatDate';
 import { useConfirm } from '@/composables/useConfirm';
 
 defineProps({
     posts: Object,
 });
+
+function isScheduled(post) {
+    return post.status === 'published' && post.published_at && new Date(post.published_at) > new Date();
+}
 
 const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
 
@@ -72,12 +76,15 @@ function destroy(id) {
                             </td>
                             <td class="px-6 py-4">
                                 <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                                    :class="post.status === 'published'
-                                        ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
-                                        : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300'"
+                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                                    :class="isScheduled(post)
+                                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                                        : post.status === 'published'
+                                            ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                                            : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300'"
                                 >
-                                    {{ post.status === 'published' ? 'Yayında' : 'Taslak' }}
+                                    <Clock v-if="isScheduled(post)" :size="11" />
+                                    {{ isScheduled(post) ? 'Zamanlandı' : post.status === 'published' ? 'Yayında' : 'Taslak' }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right text-neutral-500 dark:text-neutral-400 text-xs hidden sm:table-cell">

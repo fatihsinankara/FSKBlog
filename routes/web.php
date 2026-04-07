@@ -93,6 +93,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('cache', [Admin\CacheController::class, 'index'])->name('cache.index');
     Route::post('cache/clear', [Admin\CacheController::class, 'clear'])->name('cache.clear');
 
+    Route::get('cron', [Admin\CronController::class, 'index'])->name('cron.index');
+    Route::post('cron/ping', [Admin\CronController::class, 'ping'])->name('cron.ping');
+
     Route::get('comments', [Admin\CommentController::class, 'index'])->name('comments.index');
     Route::patch('comments/{comment}/approve', [Admin\CommentController::class, 'approve'])->name('comments.approve');
     Route::delete('comments/{comment}', [Admin\CommentController::class, 'destroy'])->name('comments.destroy');

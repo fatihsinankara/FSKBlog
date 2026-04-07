@@ -5,7 +5,7 @@ import FlashMessage from '@/Components/Shared/FlashMessage.vue';
 import {
     LayoutDashboard, FileText, Tag, FolderOpen,
     MessageSquare, Database, BookOpen, LogOut, Menu, X, ExternalLink, User,
-    FileStack, Navigation, Users
+    FileStack, Navigation, Users, Clock
 } from 'lucide-vue-next';
 
 const sidebarOpen = ref(false);
@@ -24,6 +24,7 @@ const navItems = [
     { label: 'Yorumlar', icon: MessageSquare, route: 'admin.comments.index' },
     { label: 'Genel Ayarlar', icon: Menu, route: 'admin.settings.edit' },
     { label: 'Cache', icon: Database, route: 'admin.cache.index' },
+    { label: 'Cron', icon: Clock, route: 'admin.cron.index' },
 ];
 
 // Bottom nav'da gösterilecek 5 öğe (en çok kullanılanlar)
