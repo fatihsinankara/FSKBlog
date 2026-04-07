@@ -158,8 +158,6 @@ class PostController extends Controller
 
     protected function isVisible(Post $post): bool
     {
-        return $post->status === 'published'
-            && $post->published_at !== null
-            && $post->published_at->isPast();
+        return $post->isPubliclyVisible();
     }
 }

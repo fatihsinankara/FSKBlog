@@ -28,6 +28,7 @@ class Post extends Model
         return [
             'published_at' => 'datetime',
             'featured' => 'boolean',
+            'published_notification_sent_at' => 'datetime',
         ];
     }
 
@@ -168,6 +169,13 @@ class Post extends Model
         return $query->where('status', 'published')
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
+    }
+
+    public function isPubliclyVisible(): bool
+    {
+        return $this->status === 'published'
+            && $this->published_at !== null
+            && $this->published_at->isPast();
     }
 
     public function scopeFeatured(Builder $query): Builder

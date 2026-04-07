@@ -19,10 +19,11 @@ class BookmarkController extends Controller
         $bookmarks = $request->user()
             ->bookmarks()
             ->when(in_array($status, Bookmark::statuses(), true), fn ($query) => $query->where('status', $status))
+            ->whereHas('post', fn ($query) => $query->published())
             ->with([
                 'post' => fn ($q) => $q
                     ->select(['id', 'title', 'slug', 'excerpt', 'featured_image', 'featured_image_alt', 'reading_time', 'category_id', 'published_at', 'status'])
-                    ->where('status', 'published')
+                    ->published()
                     ->with('category:id,name,slug,color'),
             ])
             ->latest()
@@ -39,6 +40,8 @@ class BookmarkController extends Controller
 
     public function toggle(Request $request, Post $post, PostMetrics $metrics): RedirectResponse
     {
+        abort_unless($post->isPubliclyVisible(), 404);
+
         $user = $request->user();
 
         $existing = Bookmark::where('user_id', $user->id)

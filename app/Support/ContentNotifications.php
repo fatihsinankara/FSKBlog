@@ -13,6 +13,10 @@ class ContentNotifications
 {
     public function notifyPublishedPost(Post $post): void
     {
+        if (! $post->isPubliclyVisible() || $post->published_notification_sent_at !== null) {
+            return;
+        }
+
         $post->loadMissing('category', 'collections');
 
         if ($post->category) {
@@ -31,6 +35,10 @@ class ContentNotifications
         foreach ($post->collections as $collection) {
             $this->notifyCollectionFollowers($collection, $post, (int) $collection->pivot->part_number);
         }
+
+        $post->forceFill([
+            'published_notification_sent_at' => now(),
+        ])->saveQuietly();
     }
 
     public function notifyCollectionFollowers(Collection $collection, Post $post, int $partNumber): void

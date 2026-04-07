@@ -11,6 +11,8 @@ class CommentLikeController extends Controller
 {
     public function toggle(Request $request, Comment $comment): JsonResponse
     {
+        abort_unless($comment->is_approved && $comment->post?->isPubliclyVisible(), 404);
+
         $user = $request->user();
 
         $existing = CommentLike::where('user_id', $user->id)

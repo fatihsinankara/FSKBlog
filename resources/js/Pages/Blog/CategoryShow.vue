@@ -1,4 +1,5 @@
 <script setup>
+import CategoryIcon from '@/Components/Shared/CategoryIcon.vue';
 import { computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -48,7 +49,7 @@ function toggleFollow() {
                         <img v-if="category.image_url" :src="category.image_url" class="w-full h-full object-cover" :alt="category.name" />
                         <div v-else class="w-full h-full flex items-center justify-center"
                             :style="{ backgroundColor: category.color + '20', color: category.color }">
-                            <font-awesome-icon v-if="category.icon" :icon="['fas', category.icon]" class="text-2xl" />
+                            <CategoryIcon v-if="category.icon" :name="category.icon" :size="24" />
                             <span v-else class="w-4 h-4 rounded-full block" :style="{ backgroundColor: category.color }" />
                         </div>
                     </div>

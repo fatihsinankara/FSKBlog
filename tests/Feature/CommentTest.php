@@ -160,7 +160,24 @@ class CommentTest extends TestCase
             ->assertDontSee('gizli@example.com');
     }
 
-    private function createPublishedPost(): Post
+    public function test_comments_cannot_be_added_to_unpublished_posts(): void
+    {
+        $post = $this->createPublishedPost([
+            'status' => 'draft',
+            'published_at' => null,
+        ]);
+
+        $this->post(route('comments.store', $post->id), [
+            'guest_name' => 'Ziyaretci',
+            'guest_email' => 'ziyaretci@example.com',
+            'body' => 'Gizli yazi yorumu',
+            'website' => '',
+        ])->assertNotFound();
+
+        $this->assertDatabaseCount('comments', 0);
+    }
+
+    private function createPublishedPost(array $overrides = []): Post
     {
         $author = User::factory()->create();
         $category = Category::create([
@@ -169,13 +186,13 @@ class CommentTest extends TestCase
             'color' => '#111111',
         ]);
 
-        return Post::create([
+        return Post::create(array_merge([
             'user_id' => $author->id,
             'category_id' => $category->id,
             'title' => 'Ornek Yazi',
             'body' => 'Icerik '.str_repeat('kelime ', 60),
             'status' => 'published',
             'published_at' => now(),
-        ]);
+        ], $overrides));
     }
 }

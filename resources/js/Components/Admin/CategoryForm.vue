@@ -1,4 +1,5 @@
 <script setup>
+import CategoryIcon from '@/Components/Shared/CategoryIcon.vue';
 import { ImageOff, Save } from 'lucide-vue-next';
 import { onBeforeUnmount, ref } from 'vue';
 
@@ -12,6 +13,7 @@ const props = defineProps({
 });
 
 const imagePreview = ref(null);
+const iconSuggestions = ['code', 'server', 'laptop', 'terminal', 'database', 'globe', 'rocket', 'pen-nib'];
 
 function clearPreview() {
     if (imagePreview.value?.startsWith('blob:')) {
@@ -97,12 +99,12 @@ onBeforeUnmount(() => {
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">FA İkon</label>
+                            <label class="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">İkon</label>
                             <div class="flex items-center gap-3">
                                 <input
                                     v-model="form.icon"
                                     type="text"
-                                    placeholder="ör: code, laptop, pen-nib"
+                                    placeholder="ör: code, server, pen-nib"
                                     class="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
                                 />
                                 <div
@@ -110,8 +112,20 @@ onBeforeUnmount(() => {
                                     class="flex h-10 w-10 items-center justify-center rounded-xl"
                                     :style="{ backgroundColor: `${form.color}20`, color: form.color }"
                                 >
-                                    <font-awesome-icon :icon="['fas', form.icon]" />
+                                    <CategoryIcon :name="form.icon" :size="18" />
                                 </div>
+                            </div>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <button
+                                    v-for="icon in iconSuggestions"
+                                    :key="icon"
+                                    type="button"
+                                    class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-2.5 py-1 text-xs text-neutral-600 transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-indigo-700 dark:hover:text-indigo-300"
+                                    @click="form.icon = icon"
+                                >
+                                    <CategoryIcon :name="icon" :size="13" />
+                                    {{ icon }}
+                                </button>
                             </div>
                             <p v-if="form.errors.icon" class="mt-1 text-xs text-red-500">{{ form.errors.icon }}</p>
                         </div>

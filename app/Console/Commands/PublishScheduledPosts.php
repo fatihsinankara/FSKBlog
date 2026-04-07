@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Post;
+use App\Support\ContentNotifications;
 use Illuminate\Console\Command;
 
 class PublishScheduledPosts extends Command
@@ -11,12 +12,13 @@ class PublishScheduledPosts extends Command
 
     protected $description = 'Zamanlanmış yazıları yayına al ve cache\'i temizle';
 
-    public function handle(): int
+    public function handle(ContentNotifications $notifications): int
     {
-        $posts = Post::where('status', 'published')
-            ->whereNotNull('published_at')
-            ->where('published_at', '<=', now())
-            ->where('published_at', '>=', now()->subMinutes(5))
+        $posts = Post::query()
+            ->published()
+            ->whereNull('published_notification_sent_at')
+            ->with(['category', 'collections'])
+            ->orderBy('published_at')
             ->get();
 
         if ($posts->isEmpty()) {
@@ -30,6 +32,7 @@ class PublishScheduledPosts extends Command
         $this->info($posts->count().' yazı yayına alındı:');
 
         foreach ($posts as $post) {
+            $notifications->notifyPublishedPost($post);
             $this->line("  - {$post->title}");
         }
 

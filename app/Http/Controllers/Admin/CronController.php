@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -32,7 +33,7 @@ class CronController extends Controller
         ]);
     }
 
-    public function ping(): \Illuminate\Http\RedirectResponse
+    public function ping(): RedirectResponse
     {
         Cache::put('schedule:last_run', now()->toIso8601String(), now()->addDay());
 

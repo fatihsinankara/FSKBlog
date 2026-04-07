@@ -17,6 +17,8 @@ class FollowController extends Controller
 
     public function toggleCollection(Request $request, Collection $collection): RedirectResponse
     {
+        abort_unless($collection->status === 'published', 404);
+
         return $this->toggle($request, $collection, 'Seri takibi güncellendi.');
     }
 

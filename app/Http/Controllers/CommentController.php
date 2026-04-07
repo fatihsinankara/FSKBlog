@@ -15,6 +15,8 @@ class CommentController extends Controller
 {
     public function store(Request $request, Post $post, PostMetrics $metrics, SpamFilter $spamFilter): RedirectResponse
     {
+        abort_unless($post->isPubliclyVisible(), 404);
+
         if (filled($request->input('website'))) {
             throw ValidationException::withMessages([
                 'body' => 'Yorum gönderilemedi.',

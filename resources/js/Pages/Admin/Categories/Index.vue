@@ -1,4 +1,5 @@
 <script setup>
+import CategoryIcon from '@/Components/Shared/CategoryIcon.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import ConfirmDialog from '@/Components/Shared/ConfirmDialog.vue';
 import { Link, router } from '@inertiajs/vue3';
@@ -51,7 +52,7 @@ function destroy(id) {
                                     class="flex h-full w-full items-center justify-center"
                                     :style="{ backgroundColor: `${category.color}20`, color: category.color }"
                                 >
-                                    <font-awesome-icon v-if="category.icon" :icon="['fas', category.icon]" class="text-sm" />
+                                    <CategoryIcon v-if="category.icon" :name="category.icon" :size="15" />
                                     <div v-else class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: category.color }" />
                                 </div>
                             </div>

@@ -219,7 +219,86 @@ class ExpansionExperienceTest extends TestCase
         $this->assertContains('collection_post', $kinds);
     }
 
-    private function createPublishedPost(string $title): Post
+    public function test_unpublished_posts_cannot_be_bookmarked(): void
+    {
+        $user = User::factory()->create();
+        $post = $this->createPublishedPost('Planli Yazi', [
+            'published_at' => now()->addHour(),
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('bookmarks.toggle', $post))
+            ->assertNotFound();
+
+        $this->assertDatabaseCount('bookmarks', 0);
+    }
+
+    public function test_unapproved_comments_cannot_be_liked(): void
+    {
+        $user = User::factory()->create();
+        $post = $this->createPublishedPost('Gizli Yorum Testi');
+
+        $comment = Comment::create([
+            'post_id' => $post->id,
+            'guest_name' => 'Misafir',
+            'guest_email' => 'misafir@example.com',
+            'body' => 'Onaysiz yorum',
+            'is_approved' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('comments.like', $comment))
+            ->assertNotFound();
+    }
+
+    public function test_scheduled_posts_notify_followers_once_when_they_go_live(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::create([
+            'name' => 'Planli Bildirim',
+            'description' => 'Bildirim kategori',
+            'color' => '#333333',
+        ]);
+        $collection = Collection::create([
+            'title' => 'Planli Seri',
+            'status' => 'published',
+        ]);
+
+        $this->actingAs($user)->post(route('categories.follow', $category))->assertRedirect();
+        $this->actingAs($user)->post(route('collections.follow', $collection))->assertRedirect();
+
+        $post = $this->createPublishedPost('Gelecekten Gelen Yazi', [
+            'category_id' => $category->id,
+            'published_at' => now()->addHour(),
+        ]);
+
+        $collection->posts()->sync([
+            $post->id => ['part_number' => 1],
+        ]);
+
+        $this->assertNull($post->fresh()->published_notification_sent_at);
+        $this->assertSame(0, $user->notifications()->count());
+
+        $this->travelTo(now()->addHour()->addMinute());
+
+        $this->artisan('posts:publish-scheduled')
+            ->assertSuccessful();
+
+        $user->refresh();
+        $post->refresh();
+
+        $this->assertNotNull($post->published_notification_sent_at);
+        $this->assertSame(2, $user->notifications()->count());
+
+        $this->artisan('posts:publish-scheduled')
+            ->assertSuccessful();
+
+        $user->refresh();
+
+        $this->assertSame(2, $user->notifications()->count());
+    }
+
+    private function createPublishedPost(string $title, array $overrides = []): Post
     {
         $author = User::factory()->create();
         $category = Category::firstOrCreate([
@@ -229,13 +308,13 @@ class ExpansionExperienceTest extends TestCase
             'color' => '#111111',
         ]);
 
-        return Post::create([
+        return Post::create(array_merge([
             'user_id' => $author->id,
             'category_id' => $category->id,
             'title' => $title,
             'body' => 'Icerik '.str_repeat('kelime ', 90),
             'status' => 'published',
             'published_at' => now(),
-        ]);
+        ], $overrides));
     }
 }

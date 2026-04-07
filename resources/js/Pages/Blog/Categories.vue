@@ -1,4 +1,5 @@
 <script setup>
+import CategoryIcon from '@/Components/Shared/CategoryIcon.vue';
 import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import SiteHead from '@/Components/Shared/SiteHead.vue';
@@ -32,7 +33,7 @@ defineProps({
                         <img v-if="cat.image_url" :src="cat.image_url" class="w-full h-full object-cover" :alt="cat.name" />
                         <div v-else class="w-full h-full flex items-center justify-center"
                             :style="{ backgroundColor: cat.color + '20', color: cat.color }">
-                            <font-awesome-icon v-if="cat.icon" :icon="['fas', cat.icon]" class="text-lg" />
+                            <CategoryIcon v-if="cat.icon" :name="cat.icon" :size="18" />
                             <span v-else class="w-3 h-3 rounded-full block" :style="{ backgroundColor: cat.color }" />
                         </div>
                     </div>

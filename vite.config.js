@@ -35,9 +35,6 @@ export default defineConfig({
                     if (id.includes('lucide-vue-next')) {
                         return 'icons';
                     }
-                    if (id.includes('@fortawesome')) {
-                        return 'fa';
-                    }
                 },
             },
         },
