@@ -18,7 +18,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
         <!-- Scripts -->
-        @routes
+        @routes(nonce: Vite::cspNonce())
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
         @if($site->custom_head_code)

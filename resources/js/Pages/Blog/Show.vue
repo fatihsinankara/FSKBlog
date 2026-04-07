@@ -12,6 +12,9 @@ import ShareButtons from '@/Components/Blog/ShareButtons.vue';
 import TableOfContents from '@/Components/Blog/TableOfContents.vue';
 import SiteHead from '@/Components/Shared/SiteHead.vue';
 import { ArrowLeft, Bookmark, BookmarkCheck } from 'lucide-vue-next';
+import { useSanitize } from '@/composables/useSanitize';
+
+const { sanitize } = useSanitize();
 
 const props = defineProps({
     post:    Object,
@@ -123,7 +126,7 @@ onMounted(() => {
                     <div class="hidden sm:block absolute -left-10 top-2 h-24 w-px bg-gradient-to-b from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
                     <div
                         class="blog-prose prose prose-neutral dark:prose-invert prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-code:before:content-none prose-code:after:content-none max-w-none"
-                        v-html="post.rendered_body"
+                        v-html="sanitize(post.rendered_body)"
                     />
                 </div>
 

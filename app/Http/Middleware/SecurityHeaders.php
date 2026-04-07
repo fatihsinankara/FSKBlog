@@ -4,12 +4,15 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
 class SecurityHeaders
 {
     public function handle(Request $request, Closure $next): Response
     {
+        $nonce = Vite::useCspNonce();
+
         $response = $next($request);
 
         $response->headers->set('X-Content-Type-Options', 'nosniff');
@@ -29,7 +32,7 @@ class SecurityHeaders
                 "base-uri 'self'; ".
                 "form-action 'self'; ".
                 "object-src 'none'; ".
-                "script-src 'self' 'unsafe-inline' https:; ".
+                "script-src 'self' 'nonce-{$nonce}' https:; ".
                 "style-src 'self' 'unsafe-inline' https:; ".
                 "font-src 'self' data: https:; ".
                 "img-src 'self' data: https: blob:; ".

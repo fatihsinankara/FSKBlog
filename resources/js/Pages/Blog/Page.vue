@@ -1,6 +1,9 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import SiteHead from '@/Components/Shared/SiteHead.vue';
+import { useSanitize } from '@/composables/useSanitize';
+
+const { sanitize } = useSanitize();
 
 const props = defineProps({
     page: Object,
@@ -39,7 +42,7 @@ const metaDescription = props.page.meta_description || '';
                            prose-code:text-indigo-600 dark:prose-code:text-indigo-400
                            prose-code:before:content-none prose-code:after:content-none
                            prose-pre:bg-neutral-950 prose-pre:border prose-pre:border-neutral-800"
-                    v-html="page.rendered_body"
+                    v-html="sanitize(page.rendered_body)"
                 />
             </article>
         </div>

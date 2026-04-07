@@ -5,6 +5,9 @@ import {
     List, ListOrdered, Quote, Minus, Eye, Pencil, Columns2,
     Strikethrough, Table, Upload, Loader2,
 } from 'lucide-vue-next';
+import { useSanitize } from '@/composables/useSanitize';
+
+const { sanitize } = useSanitize();
 
 const props = defineProps({
     modelValue: String,
@@ -409,7 +412,7 @@ function onKeydown(e) {
                     v-show="mode === 'split' || mode === 'preview'"
                     class="p-4 overflow-auto bg-neutral-50/50 dark:bg-neutral-950/50 prose prose-sm prose-neutral dark:prose-invert max-w-none min-h-[400px]"
                     :class="{ 'max-h-[600px]': mode === 'split' }"
-                    v-html="rendered"
+                    v-html="sanitize(rendered)"
                 />
             </div>
         </div>
