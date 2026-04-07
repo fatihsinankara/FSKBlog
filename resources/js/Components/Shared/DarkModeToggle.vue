@@ -4,6 +4,7 @@ import { Sun, Moon } from 'lucide-vue-next';
 
 const mode = useColorMode({
     attribute: 'class',
+    storageKey: 'fsk-color-mode',
     modes: { dark: 'dark', light: '' },
 });
 

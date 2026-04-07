@@ -1,31 +1,77 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import FlashMessage from '@/Components/Shared/FlashMessage.vue';
 import {
-    LayoutDashboard, FileText, Tag, FolderOpen,
-    MessageSquare, Database, BookOpen, LogOut, Menu, X, ExternalLink, User,
-    FileStack, Navigation, Users, Clock
+    BookOpen,
+    ChevronDown,
+    Clock,
+    Database,
+    ExternalLink,
+    FileStack,
+    FileText,
+    FolderOpen,
+    LayoutDashboard,
+    LogOut,
+    Menu,
+    MessageSquare,
+    Navigation,
+    Settings,
+    Tag,
+    User,
+    Users,
+    X,
 } from 'lucide-vue-next';
 
 const sidebarOpen = ref(false);
 const page = usePage();
 const site = computed(() => page.props.site ?? {});
 
-const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, route: 'admin.dashboard' },
-    { label: 'Yazılar', icon: FileText, route: 'admin.posts.index' },
-    { label: 'Koleksiyonlar', icon: BookOpen, route: 'admin.collections.index' },
-    { label: 'Sayfalar', icon: FileStack, route: 'admin.pages.index' },
-    { label: 'Menü', icon: Navigation, route: 'admin.menus.index' },
-    { label: 'Kategoriler', icon: FolderOpen, route: 'admin.categories.index' },
-    { label: 'Taglar', icon: Tag, route: 'admin.tags.index' },
-    { label: 'Kullanıcılar', icon: Users, route: 'admin.users.index' },
-    { label: 'Yorumlar', icon: MessageSquare, route: 'admin.comments.index' },
-    { label: 'Genel Ayarlar', icon: Menu, route: 'admin.settings.edit' },
-    { label: 'Cache', icon: Database, route: 'admin.cache.index' },
-    { label: 'Cron', icon: Clock, route: 'admin.cron.index' },
+const dashboardItem = { label: 'Dashboard', icon: LayoutDashboard, route: 'admin.dashboard' };
+
+const navGroups = [
+    {
+        key: 'content',
+        label: 'İçerik',
+        icon: FileText,
+        items: [
+            { label: 'Yazılar', icon: FileText, route: 'admin.posts.index' },
+            { label: 'Koleksiyonlar', icon: BookOpen, route: 'admin.collections.index' },
+            { label: 'Sayfalar', icon: FileStack, route: 'admin.pages.index' },
+        ],
+    },
+    {
+        key: 'structure',
+        label: 'Yapı ve Navigasyon',
+        icon: Navigation,
+        items: [
+            { label: 'Menü', icon: Navigation, route: 'admin.menus.index' },
+            { label: 'Kategoriler', icon: FolderOpen, route: 'admin.categories.index' },
+            { label: 'Taglar', icon: Tag, route: 'admin.tags.index' },
+        ],
+    },
+    {
+        key: 'management',
+        label: 'Topluluk ve Yönetim',
+        icon: Users,
+        items: [
+            { label: 'Kullanıcılar', icon: Users, route: 'admin.users.index' },
+            { label: 'Yorumlar', icon: MessageSquare, route: 'admin.comments.index' },
+        ],
+    },
+    {
+        key: 'system',
+        label: 'Sistem',
+        icon: Settings,
+        items: [
+            { label: 'Genel Ayarlar', icon: Settings, route: 'admin.settings.edit' },
+            { label: 'Cache', icon: Database, route: 'admin.cache.index' },
+            { label: 'Cron', icon: Clock, route: 'admin.cron.index' },
+        ],
+    },
 ];
+
+const flatNavItems = navGroups.flatMap((group) => group.items);
 
 // Bottom nav'da gösterilecek 5 öğe (en çok kullanılanlar)
 const bottomNavItems = [
@@ -37,19 +83,54 @@ const bottomNavItems = [
 ];
 
 function isActive(routeName) {
-    if (!routeName) return false;
+    if (!routeName) {
+        return false;
+    }
+
     return route().current(routeName) || route().current(routeName + '.*');
 }
 
+const openGroups = ref(
+    Object.fromEntries(
+        navGroups.map((group) => [
+            group.key,
+            group.items.some((item) => isActive(item.route)),
+        ]),
+    ),
+);
+
+function isGroupActive(group) {
+    return group.items.some((item) => isActive(item.route));
+}
+
+function isGroupOpen(group) {
+    return openGroups.value[group.key] ?? false;
+}
+
+function toggleGroup(groupKey) {
+    openGroups.value[groupKey] = !openGroups.value[groupKey];
+}
+
+function closeSidebar() {
+    sidebarOpen.value = false;
+}
+
 const currentPageLabel = computed(() => {
-    const found = navItems.find(item => isActive(item.route));
+    if (isActive(dashboardItem.route)) {
+        return dashboardItem.label;
+    }
+
+    const found = flatNavItems.find((item) => isActive(item.route));
+
     return found ? found.label : 'Admin';
 });
 
 const isMoreActive = computed(() => {
-    const bottomRoutes = bottomNavItems.filter(i => i.route).map(i => i.route);
-    const current = navItems.find(item => isActive(item.route));
+    const bottomRoutes = bottomNavItems.filter((item) => item.route).map((item) => item.route);
+    const current = [dashboardItem, ...flatNavItems].find((item) => isActive(item.route));
+
     if (!current) return false;
+
     return !bottomRoutes.includes(current.route);
 });
 </script>
@@ -60,7 +141,7 @@ const isMoreActive = computed(() => {
         <div
             v-if="sidebarOpen"
             class="fixed inset-0 z-20 bg-black/60 backdrop-blur-sm lg:hidden"
-            @click="sidebarOpen = false"
+            @click="closeSidebar"
         />
 
         <!-- Sidebar -->
@@ -84,34 +165,95 @@ const isMoreActive = computed(() => {
                 </Link>
                 <button
                     class="lg:hidden p-2 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                    @click="sidebarOpen = false"
+                    @click="closeSidebar"
                 >
                     <X :size="18" />
                 </button>
             </div>
 
             <!-- Nav -->
-            <nav class="flex-1 overflow-y-auto p-3 space-y-0.5">
+            <nav class="admin-sidebar-scroll flex-1 overflow-y-auto p-3 space-y-2">
                 <Link
-                    v-for="item in navItems"
-                    :key="item.route"
-                    :href="route(item.route)"
+                    :href="route(dashboardItem.route)"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group"
-                    :class="isActive(item.route)
+                    :class="isActive(dashboardItem.route)
                         ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
                         : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'"
-                    @click="sidebarOpen = false"
+                    @click="closeSidebar"
                 >
                     <component
-                        :is="item.icon"
+                        :is="dashboardItem.icon"
                         :size="17"
                         class="shrink-0 transition-transform duration-150"
-                        :class="isActive(item.route) ? '' : 'group-hover:scale-110'"
+                        :class="isActive(dashboardItem.route) ? '' : 'group-hover:scale-110'"
                     />
-                    <span>{{ item.label }}</span>
-                    <!-- Active indicator -->
-                    <span v-if="isActive(item.route)" class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
+                    <span>{{ dashboardItem.label }}</span>
+                    <span v-if="isActive(dashboardItem.route)" class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
                 </Link>
+
+                <div
+                    v-for="group in navGroups"
+                    :key="group.key"
+                    class="rounded-2xl border border-neutral-200/80 bg-neutral-50/70 p-1.5 dark:border-neutral-800 dark:bg-neutral-950/40"
+                >
+                    <button
+                        type="button"
+                        class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors"
+                        :class="isGroupActive(group)
+                            ? 'text-neutral-900 dark:text-white'
+                            : 'text-neutral-500 dark:text-neutral-400 hover:bg-white dark:hover:bg-neutral-900'"
+                        @click="toggleGroup(group.key)"
+                    >
+                        <component
+                            :is="group.icon"
+                            :size="17"
+                            class="shrink-0"
+                            :class="isGroupActive(group) ? 'text-indigo-600 dark:text-indigo-400' : ''"
+                        />
+                        <div class="min-w-0 flex-1">
+                            <div>{{ group.label }}</div>
+                            <div class="text-[11px] font-normal text-neutral-400 dark:text-neutral-500">
+                                {{ group.items.length }} bağlantı
+                            </div>
+                        </div>
+                        <ChevronDown
+                            :size="16"
+                            class="shrink-0 text-neutral-400 transition-transform duration-200"
+                            :class="isGroupOpen(group) ? 'rotate-180' : ''"
+                        />
+                    </button>
+
+                    <Transition
+                        enter-active-class="transition-all duration-200 ease-out"
+                        enter-from-class="max-h-0 opacity-0"
+                        enter-to-class="max-h-96 opacity-100"
+                        leave-active-class="transition-all duration-150 ease-in"
+                        leave-from-class="max-h-96 opacity-100"
+                        leave-to-class="max-h-0 opacity-0"
+                    >
+                        <div v-if="isGroupOpen(group)" class="overflow-hidden px-1 pb-1 pt-1">
+                            <Link
+                                v-for="item in group.items"
+                                :key="item.route"
+                                :href="route(item.route)"
+                                class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-150 group"
+                                :class="isActive(item.route)
+                                    ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100 dark:bg-neutral-900 dark:text-indigo-400 dark:ring-indigo-950/80'
+                                    : 'text-neutral-500 dark:text-neutral-400 hover:bg-white hover:text-neutral-900 dark:hover:bg-neutral-900 dark:hover:text-neutral-100'"
+                                @click="closeSidebar"
+                            >
+                                <component
+                                    :is="item.icon"
+                                    :size="16"
+                                    class="shrink-0 transition-transform duration-150"
+                                    :class="isActive(item.route) ? '' : 'group-hover:scale-110'"
+                                />
+                                <span>{{ item.label }}</span>
+                                <span v-if="isActive(item.route)" class="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
+                            </Link>
+                        </div>
+                    </Transition>
+                </div>
             </nav>
 
             <!-- User section -->
@@ -220,3 +362,14 @@ const isMoreActive = computed(() => {
         </nav>
     </div>
 </template>
+
+<style scoped>
+.admin-sidebar-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar {
+    display: none;
+}
+</style>

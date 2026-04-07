@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     @php($site = app(\App\Support\SiteSettings::class)->current())
+    @php($themeStorageKey = 'fsk-color-mode')
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,6 +13,26 @@
 
         <title inertia>{{ $site->default_meta_title ?: $site->site_name }}</title>
         <link rel="icon" href="{{ $site->favicon_url ?: asset('favicon.ico') }}">
+        <script nonce="{{ Vite::cspNonce() }}">
+            (() => {
+                const storageKey = @json($themeStorageKey);
+                const root = document.documentElement;
+
+                try {
+                    const stored = localStorage.getItem(storageKey);
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    const isDark = stored === 'dark' || ((stored === 'auto' || stored === null) && prefersDark);
+
+                    root.classList.toggle('dark', isDark);
+                    root.style.colorScheme = isDark ? 'dark' : 'light';
+                } catch {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                    root.classList.toggle('dark', prefersDark);
+                    root.style.colorScheme = prefersDark ? 'dark' : 'light';
+                }
+            })();
+        </script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
