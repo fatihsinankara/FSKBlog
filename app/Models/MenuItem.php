@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Cache;
 
 class MenuItem extends Model
 {
+    public const CACHE_KEY = 'nav.menu.v2';
+
+    public const LEGACY_CACHE_KEY = 'nav.menu';
+
     protected $fillable = [
         'label', 'type', 'target', 'parent_id', 'sort_order', 'is_active', 'open_in_new_tab',
     ];
@@ -26,8 +30,14 @@ class MenuItem extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget('nav.menu'));
-        static::deleted(fn () => Cache::forget('nav.menu'));
+        static::saved(fn () => static::forgetNavigationCache());
+        static::deleted(fn () => static::forgetNavigationCache());
+    }
+
+    public static function forgetNavigationCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+        Cache::forget(self::LEGACY_CACHE_KEY);
     }
 
     public function parent(): BelongsTo

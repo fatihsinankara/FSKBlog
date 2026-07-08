@@ -43,12 +43,12 @@ class Page extends Model
 
         static::saved(function (Page $page) {
             Cache::forget("page.{$page->id}.rendered");
-            Cache::forget('nav.menu');
+            MenuItem::forgetNavigationCache();
         });
 
         static::deleted(function (Page $page) {
             Cache::forget("page.{$page->id}.rendered");
-            Cache::forget('nav.menu');
+            MenuItem::forgetNavigationCache();
         });
     }
 

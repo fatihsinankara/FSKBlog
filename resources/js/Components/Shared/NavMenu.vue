@@ -10,12 +10,19 @@
  *   items  — array of { id, label, url, open_in_new_tab, children[] }
  */
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { ChevronDown } from 'lucide-vue-next';
+import CategoryIcon from './CategoryIcon.vue';
 
 const props = defineProps({
     items: { type: Array, default: () => [] },
 });
+
+const page = usePage();
+const categories = computed(() => page.props.nav?.categories ?? []);
+const categoryBySlug = computed(() => Object.fromEntries(
+    categories.value.map((category) => [category.slug, category])
+));
 
 // ── Measurement ─────────────────────────────────────────────────────────────
 const containerRef  = ref(null);
@@ -122,6 +129,24 @@ function hasOwnLink(item) {
     return Boolean(item.url);
 }
 
+function categoryForItem(item) {
+    if (item?.type !== 'category') {
+        return null;
+    }
+
+    return categoryBySlug.value[item.target] ?? null;
+}
+
+function categoryIconName(item) {
+    return categoryForItem(item)?.icon || 'folder';
+}
+
+function categoryIconStyle(item) {
+    return {
+        color: categoryForItem(item)?.color || undefined,
+    };
+}
+
 // Close on outside click
 function onDocClick(e) {
     if (containerRef.value && !containerRef.value.contains(e.target)) {
@@ -146,6 +171,12 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
             data-measure-item
             class="px-3 py-1.5 text-sm rounded-md whitespace-nowrap flex items-center gap-1 shrink-0"
         >
+            <CategoryIcon
+                v-if="item.type === 'category'"
+                :name="categoryIconName(item)"
+                :size="14"
+                :style="categoryIconStyle(item)"
+            />
             {{ item.label }}
             <ChevronDown v-if="item.children?.length" :size="12" />
         </div>
@@ -172,6 +203,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
                         ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white'
                         : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'"
                 >
+                    <CategoryIcon
+                        v-if="item.type === 'category'"
+                        :name="categoryIconName(item)"
+                        :size="14"
+                        class="shrink-0"
+                        :style="categoryIconStyle(item)"
+                    />
                     {{ item.label }}
                     <ChevronDown
                         :size="12"
@@ -198,6 +236,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
                             @click="close"
                             class="block px-4 py-2 text-sm font-medium text-neutral-900 dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors border-b border-neutral-100 dark:border-neutral-800"
                         >
+                            <CategoryIcon
+                                v-if="item.type === 'category'"
+                                :name="categoryIconName(item)"
+                                :size="15"
+                                class="mr-2 inline-block align-[-0.18em]"
+                                :style="categoryIconStyle(item)"
+                            />
                             {{ item.label }}
                         </component>
                         <component
@@ -206,8 +251,15 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
                             :is="itemComponent(child)"
                             v-bind="itemProps(child)"
                             @click="close"
-                            class="block px-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                            class="flex items-center gap-2 px-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
                         >
+                            <CategoryIcon
+                                v-if="child.type === 'category'"
+                                :name="categoryIconName(child)"
+                                :size="15"
+                                class="shrink-0"
+                                :style="categoryIconStyle(child)"
+                            />
                             {{ child.label }}
                         </component>
                     </div>
@@ -221,6 +273,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
                 v-bind="itemProps(item)"
                 class="px-3 py-1.5 text-sm rounded-md whitespace-nowrap shrink-0 transition-colors text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
             >
+                <CategoryIcon
+                    v-if="item.type === 'category'"
+                    :name="categoryIconName(item)"
+                    :size="14"
+                    class="mr-1 inline-block align-[-0.18em]"
+                    :style="categoryIconStyle(item)"
+                />
                 {{ item.label }}
             </component>
         </template>
@@ -266,6 +325,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
                                 @click="close"
                                 class="block px-4 py-2 text-sm font-medium text-neutral-900 dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
                             >
+                                <CategoryIcon
+                                    v-if="item.type === 'category'"
+                                    :name="categoryIconName(item)"
+                                    :size="15"
+                                    class="mr-2 inline-block align-[-0.18em]"
+                                    :style="categoryIconStyle(item)"
+                                />
                                 {{ item.label }}
                             </component>
                             <component
@@ -274,8 +340,15 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
                                 :is="itemComponent(child)"
                                 v-bind="itemProps(child)"
                                 @click="close"
-                                class="block pl-6 pr-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                                class="flex items-center gap-2 py-2 pl-6 pr-4 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
                             >
+                                <CategoryIcon
+                                    v-if="child.type === 'category'"
+                                    :name="categoryIconName(child)"
+                                    :size="15"
+                                    class="shrink-0"
+                                    :style="categoryIconStyle(child)"
+                                />
                                 {{ child.label }}
                             </component>
                         </template>
@@ -285,8 +358,15 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
                             :is="itemComponent(item)"
                             v-bind="itemProps(item)"
                             @click="close"
-                            class="block px-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                            class="flex items-center gap-2 px-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
                         >
+                            <CategoryIcon
+                                v-if="item.type === 'category'"
+                                :name="categoryIconName(item)"
+                                :size="15"
+                                class="shrink-0"
+                                :style="categoryIconStyle(item)"
+                            />
                             {{ item.label }}
                         </component>
                     </template>

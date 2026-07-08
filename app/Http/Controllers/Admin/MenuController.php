@@ -9,7 +9,6 @@ use App\Models\Page;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -50,7 +49,7 @@ class MenuController extends Controller
         }
 
         MenuItem::create($validated);
-        Cache::forget('nav.menu');
+        MenuItem::forgetNavigationCache();
 
         return redirect()->route('admin.menus.index')->with('message', 'Menü öğesi eklendi.');
     }
@@ -87,7 +86,7 @@ class MenuController extends Controller
         }
 
         $menuItem->update($validated);
-        Cache::forget('nav.menu');
+        MenuItem::forgetNavigationCache();
 
         return redirect()->route('admin.menus.index')->with('message', 'Menü öğesi güncellendi.');
     }
@@ -95,7 +94,7 @@ class MenuController extends Controller
     public function destroy(MenuItem $menuItem): RedirectResponse
     {
         $menuItem->delete();
-        Cache::forget('nav.menu');
+        MenuItem::forgetNavigationCache();
 
         return redirect()->route('admin.menus.index')->with('message', 'Menü öğesi silindi.');
     }
@@ -112,7 +111,7 @@ class MenuController extends Controller
             MenuItem::where('id', $data['id'])->update(['sort_order' => $data['sort_order']]);
         }
 
-        Cache::forget('nav.menu');
+        MenuItem::forgetNavigationCache();
 
         return back()->with('message', 'Sıralama güncellendi.');
     }

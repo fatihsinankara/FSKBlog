@@ -4,8 +4,9 @@ import { Link, usePage, router } from '@inertiajs/vue3';
 import DarkModeToggle from './DarkModeToggle.vue';
 import SearchModal from './SearchModal.vue';
 import NavMenu from './NavMenu.vue';
+import CategoryIcon from './CategoryIcon.vue';
 import {
-    Search, Menu, X, Home, LayoutDashboard,
+    Search, Menu, X, Home, LayoutDashboard, BookOpen,
     LogIn, UserPlus, LogOut, User, Bookmark, Settings
 } from 'lucide-vue-next';
 
@@ -14,6 +15,7 @@ const drawerOpen = ref(false);
 const searchOpen = ref(false);
 
 const navMenu = computed(() => page.props.nav?.menu ?? []);
+const categories = computed(() => page.props.nav?.categories ?? []);
 const user = computed(() => page.props.auth?.user ?? null);
 const site = computed(() => page.props.site ?? {});
 const isAdmin = computed(() => Boolean(user.value?.is_admin));
@@ -51,6 +53,28 @@ function logout() {
 
 function initials(label = '') {
     return label.slice(0, 2).toUpperCase();
+}
+
+const categoryBySlug = computed(() => Object.fromEntries(
+    categories.value.map((category) => [category.slug, category])
+));
+
+function categoryForItem(item) {
+    if (item?.type !== 'category') {
+        return null;
+    }
+
+    return categoryBySlug.value[item.target] ?? null;
+}
+
+function categoryIconName(item) {
+    return categoryForItem(item)?.icon || 'folder';
+}
+
+function categoryIconStyle(item) {
+    return {
+        color: categoryForItem(item)?.color || undefined,
+    };
 }
 </script>
 
@@ -126,6 +150,7 @@ function initials(label = '') {
                                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
                                 @click="closeDrawer"
                             >
+                                <BookOpen :size="16" class="shrink-0 text-neutral-400" />
                                 Seriler
                             </Link>
                             <template v-for="item in navMenu" :key="item.id">
@@ -136,6 +161,13 @@ function initials(label = '') {
                                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
                                     @click="closeDrawer"
                                 >
+                                    <CategoryIcon
+                                        v-if="item.type === 'category'"
+                                        :name="categoryIconName(item)"
+                                        :size="16"
+                                        class="shrink-0"
+                                        :style="categoryIconStyle(item)"
+                                    />
                                     {{ item.label }}
                                 </component>
 
@@ -155,6 +187,13 @@ function initials(label = '') {
                                         class="flex items-center px-3 py-2 rounded-lg text-sm text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
                                         @click="closeDrawer"
                                     >
+                                        <CategoryIcon
+                                            v-if="child.type === 'category'"
+                                            :name="categoryIconName(child)"
+                                            :size="15"
+                                            class="mr-2 shrink-0"
+                                            :style="categoryIconStyle(child)"
+                                        />
                                         {{ child.label }}
                                     </component>
                                 </div>
@@ -291,8 +330,9 @@ function initials(label = '') {
                 </Link>
                 <Link
                     :href="route('collections.index')"
-                    class="px-3 py-1.5 text-sm rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
                 >
+                    <BookOpen :size="15" class="shrink-0 text-neutral-400" />
                     Seriler
                 </Link>
                 <NavMenu :items="navMenu" />

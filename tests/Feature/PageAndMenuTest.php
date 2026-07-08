@@ -127,16 +127,28 @@ class PageAndMenuTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->createPublishedPost();
+        $post = $this->createPublishedPost();
+        $category = Category::findOrFail($post->category_id);
+
+        MenuItem::create([
+            'label' => $category->name,
+            'type' => 'category',
+            'target' => $category->slug,
+            'sort_order' => 3,
+            'is_active' => true,
+        ]);
 
         $this->get(route('home'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Blog/Index')
-                ->has('nav.menu', 2)
+                ->has('nav.menu', 3)
                 ->where('nav.menu.0.label', 'Iletisim')
                 ->where('nav.menu.0.url', '/p/iletisim')
                 ->where('nav.menu.1.label', 'Harici Kaynak')
+                ->where('nav.menu.2.type', 'category')
+                ->where('nav.menu.2.target', $category->slug)
+                ->where('nav.categories.0.color', '#123456')
             );
     }
 

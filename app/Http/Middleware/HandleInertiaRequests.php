@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Support\SiteSettings;
+use App\Support\Turnstile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -40,6 +41,7 @@ class HandleInertiaRequests extends Middleware
                     : null,
             ],
             'site' => fn () => app(SiteSettings::class)->public(),
+            'turnstile' => fn () => app(Turnstile::class)->publicConfig(),
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),
@@ -48,7 +50,7 @@ class HandleInertiaRequests extends Middleware
                 'categories' => fn () => Cache::remember('nav.categories', 3600,
                     fn () => Category::select('id', 'name', 'slug', 'color', 'icon', 'image')->get()->toArray()
                 ),
-                'menu' => fn () => Cache::remember('nav.menu', 3600, function () {
+                'menu' => fn () => Cache::remember(MenuItem::CACHE_KEY, 3600, function () {
                     $publishedPageSlugs = Page::published()
                         ->pluck('slug')
                         ->flip();
@@ -69,6 +71,7 @@ class HandleInertiaRequests extends Middleware
                                 'id' => $child->id,
                                 'label' => $child->label,
                                 'type' => $child->type,
+                                'target' => $child->target,
                                 'url' => $child->url,
                                 'open_in_new_tab' => $child->open_in_new_tab,
                             ])
@@ -84,6 +87,7 @@ class HandleInertiaRequests extends Middleware
                             'id' => $item->id,
                             'label' => $item->label,
                             'type' => $item->type,
+                            'target' => $item->target,
                             'url' => $hasVisibleLink ? $item->url : null,
                             'open_in_new_tab' => $item->open_in_new_tab,
                             'children' => $children,
