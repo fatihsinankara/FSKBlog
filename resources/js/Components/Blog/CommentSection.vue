@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { MessageCircle, Send, Heart, CornerDownRight } from 'lucide-vue-next';
 import Pagination from '@/Components/Shared/Pagination.vue';
+import TurnstileWidget from '@/Components/Shared/TurnstileWidget.vue';
 import { formatDateLong as formatDate } from '@/composables/useFormatDate';
 
 const props = defineProps({
@@ -15,6 +16,7 @@ const isAdmin = computed(() => Boolean(user?.is_admin));
 const comments = computed(() => props.post.comments?.data ?? []);
 const totalComments = computed(() => props.post.comments?.total ?? comments.value.length);
 const replyingTo = ref(null);
+const turnstile = ref(null);
 
 const form = useForm({
     body:        '',
@@ -22,15 +24,17 @@ const form = useForm({
     guest_email: '',
     website:     '',
     parent_id:   null,
+    cf_turnstile_response: '',
 });
 
 function submit() {
     form.post(route('comments.store', props.post.id), {
         preserveScroll: true,
         onSuccess: () => {
-            form.reset('body', 'guest_name', 'guest_email', 'website', 'parent_id');
+            form.reset('body', 'guest_name', 'guest_email', 'website', 'parent_id', 'cf_turnstile_response');
             replyingTo.value = null;
         },
+        onFinish: () => turnstile.value?.reset(),
     });
 }
 
@@ -247,6 +251,14 @@ function cancelReply() {
                     />
                     <p v-if="form.errors.body" class="text-xs text-red-500 mt-1">{{ form.errors.body }}</p>
                 </div>
+
+                <TurnstileWidget
+                    v-if="!user"
+                    ref="turnstile"
+                    v-model="form.cf_turnstile_response"
+                    :error="form.errors.cf_turnstile_response"
+                    action="comment"
+                />
 
                 <div class="flex items-center justify-between">
                     <p v-if="!isAdmin" class="text-xs text-neutral-400">

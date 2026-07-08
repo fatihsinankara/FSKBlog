@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Notifications\CommentReplyNotification;
 use App\Support\PostMetrics;
 use App\Support\SpamFilter;
+use App\Support\Turnstile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -30,6 +31,8 @@ class CommentController extends Controller
         ];
 
         if (! $request->user()) {
+            app(Turnstile::class)->validate($request);
+
             $rules['guest_name'] = ['required', 'string', 'max:100'];
             $rules['guest_email'] = ['required', 'email', 'max:255'];
         }

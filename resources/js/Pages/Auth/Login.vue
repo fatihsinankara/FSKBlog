@@ -1,6 +1,8 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
+import TurnstileWidget from '@/Components/Shared/TurnstileWidget.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 defineProps({
     status: String,
@@ -11,11 +13,17 @@ const form = useForm({
     email:    '',
     password: '',
     remember: false,
+    cf_turnstile_response: '',
 });
+
+const turnstile = ref(null);
 
 const submit = () => {
     form.post(route('login'), {
-        onFinish: () => form.reset('password'),
+        onFinish: () => {
+            form.reset('password', 'cf_turnstile_response');
+            turnstile.value?.reset();
+        },
     });
 };
 </script>
@@ -93,6 +101,13 @@ const submit = () => {
                                 <span class="text-sm text-neutral-600 dark:text-neutral-400">Beni hatırla</span>
                             </label>
                         </div>
+
+                        <TurnstileWidget
+                            ref="turnstile"
+                            v-model="form.cf_turnstile_response"
+                            :error="form.errors.cf_turnstile_response"
+                            action="login"
+                        />
 
                         <button
                             type="submit"

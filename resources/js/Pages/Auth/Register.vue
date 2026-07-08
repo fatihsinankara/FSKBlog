@@ -1,17 +1,25 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
+import TurnstileWidget from '@/Components/Shared/TurnstileWidget.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const form = useForm({
     name: '',
     email: '',
     password: '',
     password_confirmation: '',
+    cf_turnstile_response: '',
 });
+
+const turnstile = ref(null);
 
 const submit = () => {
     form.post(route('register'), {
-        onFinish: () => form.reset('password', 'password_confirmation'),
+        onFinish: () => {
+            form.reset('password', 'password_confirmation', 'cf_turnstile_response');
+            turnstile.value?.reset();
+        },
     });
 };
 </script>
@@ -99,6 +107,13 @@ const submit = () => {
                             />
                             <p v-if="form.errors.password_confirmation" class="mt-1.5 text-xs text-red-500">{{ form.errors.password_confirmation }}</p>
                         </div>
+
+                        <TurnstileWidget
+                            ref="turnstile"
+                            v-model="form.cf_turnstile_response"
+                            :error="form.errors.cf_turnstile_response"
+                            action="register"
+                        />
 
                         <button
                             type="submit"
