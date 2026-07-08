@@ -79,19 +79,19 @@ const submit = () => {
                             revealable
                             :error="form.errors.password"
                         >
-                            <template #labelAction>
-                                <Link
-                                    v-if="canResetPassword"
-                                    :href="route('password.request')"
-                                    class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
-                                >
-                                    Şifremi unuttum
-                                </Link>
-                            </template>
                             <template #icon>
                                 <Lock :size="17" />
                             </template>
                         </AuthTextField>
+
+                        <div v-if="canResetPassword" class="-mt-3 flex justify-end">
+                            <Link
+                                :href="route('password.request')"
+                                class="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                            >
+                                Şifremi unuttum
+                            </Link>
+                        </div>
 
                         <div class="flex items-center">
                             <label class="flex items-center gap-2 cursor-pointer">
