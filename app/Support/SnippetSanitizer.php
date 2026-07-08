@@ -9,6 +9,16 @@ use Throwable;
 
 class SnippetSanitizer
 {
+    public static function isValidHead(?string $value): bool
+    {
+        return self::isValid($value, ['meta', 'link', 'script', 'noscript']);
+    }
+
+    public static function isValidBodyEnd(?string $value): bool
+    {
+        return self::isValid($value, ['script', 'noscript', 'iframe', 'div']);
+    }
+
     public static function isValid(?string $value, array $allowedTags, array $blockedTags = []): bool
     {
         if (blank($value)) {
@@ -101,6 +111,14 @@ class SnippetSanitizer
 
     protected static function hasValidAttributes(DOMElement $element, string $tag): bool
     {
+        if ($tag === 'script' && ! $element->hasAttribute('src')) {
+            return false;
+        }
+
+        if ($tag === 'iframe' && ! $element->hasAttribute('src')) {
+            return false;
+        }
+
         foreach ($element->attributes as $attribute) {
             $name = strtolower($attribute->nodeName);
             $value = trim($attribute->nodeValue ?? '');
@@ -152,6 +170,10 @@ class SnippetSanitizer
             return true;
         }
 
+        if (str_starts_with($value, '//')) {
+            return false;
+        }
+
         if (
             str_starts_with($value, '/')
             || str_starts_with($value, '#')
@@ -160,7 +182,16 @@ class SnippetSanitizer
             return true;
         }
 
-        return preg_match('/^https?:\/\//i', $value) === 1;
+        $parts = parse_url($value);
+
+        if (($parts['scheme'] ?? null) !== 'https' || empty($parts['host'])) {
+            return false;
+        }
+
+        $host = strtolower($parts['host']);
+        $allowedHosts = config('security.snippet_allowed_hosts', []);
+
+        return in_array($host, $allowedHosts, true);
     }
 
     protected static function isSafeSrcSet(string $value): bool

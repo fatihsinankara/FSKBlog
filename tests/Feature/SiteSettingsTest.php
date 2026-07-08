@@ -17,6 +17,7 @@ class SiteSettingsTest extends TestCase
     public function test_admin_can_update_site_settings_and_public_pages_receive_shared_site_data(): void
     {
         Storage::fake('public');
+        config(['security.snippet_allowed_hosts' => ['www.googletagmanager.com']]);
 
         $admin = User::factory()->create([
             'is_admin' => true,
@@ -33,7 +34,7 @@ class SiteSettingsTest extends TestCase
                 'favicon' => UploadedFile::fake()->image('favicon.png', 64, 64),
                 'default_og_image' => UploadedFile::fake()->image('og.png', 1200, 630),
                 'custom_head_code' => '<meta name="verification" content="123">',
-                'custom_body_end_code' => '<script>window.analyticsReady=true;</script>',
+                'custom_body_end_code' => '<script src="https://www.googletagmanager.com/gtag/js?id=G-TEST"></script>',
                 'maintenance_enabled' => false,
             ])
             ->assertSessionDoesntHaveErrors()
@@ -83,6 +84,81 @@ class SiteSettingsTest extends TestCase
             ])
             ->assertRedirect(route('admin.settings.edit'))
             ->assertSessionHasErrors(['custom_head_code', 'custom_body_end_code']);
+    }
+
+    public function test_custom_snippets_require_external_allowlisted_https_sources(): void
+    {
+        config(['security.snippet_allowed_hosts' => ['www.googletagmanager.com']]);
+
+        $admin = User::factory()->create([
+            'is_admin' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.settings.edit'))
+            ->post(route('admin.settings.update'), [
+                'site_name' => 'Test',
+                'custom_head_code' => '<script>window.analyticsReady=true;</script>',
+                'custom_body_end_code' => '<iframe src="https://evil.example/embed"></iframe>',
+            ])
+            ->assertRedirect(route('admin.settings.edit'))
+            ->assertSessionHasErrors(['custom_head_code', 'custom_body_end_code']);
+
+        $this->actingAs($admin)
+            ->post(route('admin.settings.update'), [
+                'site_name' => 'Test',
+                'custom_head_code' => '<script src="https://www.googletagmanager.com/gtag/js?id=G-TEST"></script>',
+                'custom_body_end_code' => '<script src="https://www.googletagmanager.com/gtm.js?id=GTM-TEST"></script>',
+            ])
+            ->assertSessionDoesntHaveErrors()
+            ->assertRedirect();
+    }
+
+    public function test_svg_uploads_are_rejected(): void
+    {
+        $admin = User::factory()->create([
+            'is_admin' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.settings.edit'))
+            ->post(route('admin.settings.update'), [
+                'site_name' => 'Test',
+                'logo' => UploadedFile::fake()->create('logo.svg', 8, 'image/svg+xml'),
+                'favicon' => UploadedFile::fake()->create('favicon.svg', 8, 'image/svg+xml'),
+            ])
+            ->assertRedirect(route('admin.settings.edit'))
+            ->assertSessionHasErrors(['logo', 'favicon']);
+    }
+
+    public function test_custom_style_snippets_are_rejected(): void
+    {
+        $admin = User::factory()->create([
+            'is_admin' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.settings.edit'))
+            ->post(route('admin.settings.update'), [
+                'site_name' => 'Test',
+                'custom_head_code' => '<style>body{display:none}</style>',
+            ])
+            ->assertRedirect(route('admin.settings.edit'))
+            ->assertSessionHasErrors(['custom_head_code']);
+    }
+
+    public function test_stored_invalid_custom_snippets_are_not_rendered(): void
+    {
+        SiteSetting::query()->create([
+            'site_name' => 'FSK Blog',
+            'custom_head_code' => '<script>window.invalidHead=true;</script>',
+            'custom_body_end_code' => '<iframe src="https://evil.example/embed"></iframe>',
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertDontSee('window.invalidHead=true', false)
+            ->assertDontSee('evil.example', false);
     }
 
     public function test_maintenance_mode_blocks_public_users_but_allows_admins(): void

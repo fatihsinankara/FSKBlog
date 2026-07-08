@@ -10,6 +10,7 @@ use App\Models\Comment;
 use App\Models\NewsletterSubscription;
 use App\Models\Post;
 use App\Models\PostDailyMetric;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,7 +19,7 @@ class DashboardController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('Admin/Dashboard', [
+        return Inertia::render('Admin/Dashboard', Cache::remember('admin.dashboard.v1', 120, fn () => [
             'stats' => [
                 'total_posts' => Post::count(),
                 'published_posts' => Post::published()->count(),
@@ -87,6 +88,6 @@ class DashboardController extends Controller
                 ->get()
                 ->reverse()
                 ->values(),
-        ]);
+        ]));
     }
 }

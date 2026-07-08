@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -71,6 +73,67 @@ class AdminTaxonomyTest extends TestCase
             'name' => 'PHP 8',
             'slug' => 'php-8',
         ]);
+    }
+
+    public function test_category_with_posts_cannot_be_deleted_and_image_is_kept(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create([
+            'is_admin' => true,
+        ]);
+
+        $category = Category::create([
+            'name' => 'Silinemez',
+            'image' => 'categories/images/locked.webp',
+        ]);
+
+        Storage::disk('public')->put($category->image, 'image');
+
+        Post::create([
+            'user_id' => $admin->id,
+            'category_id' => $category->id,
+            'title' => 'Kategoriye Bagli Yazi',
+            'body' => 'Icerik',
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.categories.destroy', $category))
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Bu kategoriye bağlı yazılar olduğu için kategori silinemez.');
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $category->id,
+        ]);
+        Storage::disk('public')->assertExists('categories/images/locked.webp');
+    }
+
+    public function test_empty_category_can_be_deleted(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create([
+            'is_admin' => true,
+        ]);
+
+        $category = Category::create([
+            'name' => 'Bos Kategori',
+            'image' => 'categories/images/empty.webp',
+        ]);
+
+        Storage::disk('public')->put($category->image, 'image');
+
+        $this->actingAs($admin)
+            ->delete(route('admin.categories.destroy', $category))
+            ->assertRedirect(route('admin.categories.index'))
+            ->assertSessionHas('message', 'Kategori silindi.');
+
+        $this->assertDatabaseMissing('categories', [
+            'id' => $category->id,
+        ]);
+        Storage::disk('public')->assertMissing('categories/images/empty.webp');
     }
 
     public function test_admin_can_open_tag_create_and_edit_pages(): void

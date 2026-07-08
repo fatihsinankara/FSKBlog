@@ -85,11 +85,23 @@ function submit() {
                     <div class="space-y-5">
                         <div>
                             <label class="mb-2 block text-xs font-medium text-neutral-600 dark:text-neutral-400">Logo</label>
-                            <ImageUpload :current-url="currentLogo" :error="form.errors.logo" @change="onLogo" />
+                            <ImageUpload
+                                :current-url="currentLogo"
+                                :error="form.errors.logo"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                help-text="JPG, PNG, WebP, GIF - max 4MB"
+                                @change="onLogo"
+                            />
                         </div>
                         <div>
                             <label class="mb-2 block text-xs font-medium text-neutral-600 dark:text-neutral-400">Favicon</label>
-                            <ImageUpload :current-url="currentFavicon" :error="form.errors.favicon" @change="onFavicon" />
+                            <ImageUpload
+                                :current-url="currentFavicon"
+                                :error="form.errors.favicon"
+                                accept="image/png,image/webp,image/x-icon,.ico"
+                                help-text="ICO, PNG, WebP - max 2MB"
+                                @change="onFavicon"
+                            />
                         </div>
                     </div>
                 </div>
@@ -110,7 +122,13 @@ function submit() {
                     </div>
                     <div>
                         <label class="mb-2 block text-xs font-medium text-neutral-600 dark:text-neutral-400">Varsayılan OG görseli</label>
-                        <ImageUpload :current-url="currentOgImage" :error="form.errors.default_og_image" @change="onOgImage" />
+                        <ImageUpload
+                            :current-url="currentOgImage"
+                            :error="form.errors.default_og_image"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            help-text="JPG, PNG, WebP, GIF - max 4MB"
+                            @change="onOgImage"
+                        />
                     </div>
                 </div>
             </section>

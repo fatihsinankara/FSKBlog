@@ -5,6 +5,14 @@ import { Upload, X } from 'lucide-vue-next';
 const props = defineProps({
     currentUrl: String,
     error: String,
+    accept: {
+        type: String,
+        default: 'image/*',
+    },
+    helpText: {
+        type: String,
+        default: 'JPG, PNG, WebP - max 4MB',
+    },
 });
 const emit = defineEmits(['change']);
 
@@ -46,12 +54,12 @@ function remove() {
             @drop.prevent="onDrop"
             @click="$refs.input.click()"
         >
-            <input ref="input" type="file" accept="image/*" class="hidden" @change="onInput" />
+            <input ref="input" type="file" :accept="accept" class="hidden" @change="onInput" />
             <Upload :size="24" class="mx-auto mb-2 text-neutral-400" />
             <p class="text-sm text-neutral-500 dark:text-neutral-400">
                 Görseli sürükle bırak veya <span class="text-indigo-600 dark:text-indigo-400">tıkla</span>
             </p>
-            <p class="text-xs text-neutral-400 mt-1">JPG, PNG, WebP — max 4MB</p>
+            <p class="text-xs text-neutral-400 mt-1">{{ helpText }}</p>
         </div>
 
         <div v-else class="relative rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700 aspect-video">

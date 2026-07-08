@@ -74,6 +74,10 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
+        if ($category->posts()->exists()) {
+            return back()->with('error', 'Bu kategoriye bağlı yazılar olduğu için kategori silinemez.');
+        }
+
         if ($category->image) {
             Storage::disk('public')->delete($category->image);
         }

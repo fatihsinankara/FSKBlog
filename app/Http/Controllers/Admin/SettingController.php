@@ -31,8 +31,8 @@ class SettingController extends Controller
             'site_keywords' => ['nullable', 'string', 'max:1000'],
             'default_meta_title' => ['nullable', 'string', 'max:255'],
             'default_meta_description' => ['nullable', 'string', 'max:1000'],
-            'logo' => ['nullable', 'image', 'mimes:jpeg,png,webp,gif,svg', 'max:4096'],
-            'favicon' => ['nullable', 'file', 'max:2048', 'mimes:ico,png,svg,webp'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,webp,gif', 'max:4096'],
+            'favicon' => ['nullable', 'file', 'max:2048', 'mimes:ico,png,webp'],
             'default_og_image' => ['nullable', 'image', 'mimes:jpeg,png,webp,gif', 'max:4096'],
             'custom_head_code' => ['nullable', 'string'],
             'custom_body_end_code' => ['nullable', 'string'],
@@ -61,12 +61,12 @@ class SettingController extends Controller
     {
         $errors = [];
 
-        if (! SnippetSanitizer::isValid($validated['custom_head_code'] ?? null, ['meta', 'link', 'script', 'style', 'noscript'])) {
-            $errors['custom_head_code'] = 'Head kodlarında yalnızca izin verilen etiketler kullanılabilir.';
+        if (! SnippetSanitizer::isValidHead($validated['custom_head_code'] ?? null)) {
+            $errors['custom_head_code'] = 'Head kodlarında yalnızca izin verilen etiketler ve güvenilir HTTPS kaynakları kullanılabilir.';
         }
 
-        if (! SnippetSanitizer::isValid($validated['custom_body_end_code'] ?? null, ['script', 'noscript', 'iframe', 'div'])) {
-            $errors['custom_body_end_code'] = 'Body sonu kodlarında yalnızca izin verilen etiketler kullanılabilir.';
+        if (! SnippetSanitizer::isValidBodyEnd($validated['custom_body_end_code'] ?? null)) {
+            $errors['custom_body_end_code'] = 'Body sonu kodlarında yalnızca izin verilen etiketler ve güvenilir HTTPS kaynakları kullanılabilir.';
         }
 
         if ($errors !== []) {

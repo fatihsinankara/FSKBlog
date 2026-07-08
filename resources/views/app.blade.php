@@ -42,13 +42,13 @@
         @routes(nonce: Vite::cspNonce())
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
-        @if($site->custom_head_code)
+        @if($site->custom_head_code && \App\Support\SnippetSanitizer::isValidHead($site->custom_head_code))
             {!! $site->custom_head_code !!}
         @endif
     </head>
     <body class="font-sans antialiased">
         @inertia
-        @if($site->custom_body_end_code)
+        @if($site->custom_body_end_code && \App\Support\SnippetSanitizer::isValidBodyEnd($site->custom_body_end_code))
             {!! $site->custom_body_end_code !!}
         @endif
     </body>

@@ -15,8 +15,8 @@ class SitemapController extends Controller
         $sitemaps = [
             ['loc' => route('sitemap.pages'),      'lastmod' => now()->toAtomString()],
             ['loc' => route('sitemap.posts'),      'lastmod' => Post::published()->latest('updated_at')->value('updated_at')?->toAtomString() ?? now()->toAtomString()],
-            ['loc' => route('sitemap.categories'), 'lastmod' => Category::latest('updated_at')->value('updated_at')?->toAtomString() ?? now()->toAtomString()],
-            ['loc' => route('sitemap.tags'),       'lastmod' => Tag::latest('updated_at')->value('updated_at')?->toAtomString() ?? now()->toAtomString()],
+            ['loc' => route('sitemap.categories'), 'lastmod' => Category::whereHas('posts', fn ($query) => $query->published())->latest('updated_at')->value('updated_at')?->toAtomString() ?? now()->toAtomString()],
+            ['loc' => route('sitemap.tags'),       'lastmod' => Tag::whereHas('posts', fn ($query) => $query->published())->latest('updated_at')->value('updated_at')?->toAtomString() ?? now()->toAtomString()],
         ];
 
         return response()
@@ -60,7 +60,8 @@ class SitemapController extends Controller
 
     public function categories(): Response
     {
-        $categories = Category::select('slug', 'updated_at')
+        $categories = Category::whereHas('posts', fn ($query) => $query->published())
+            ->select('slug', 'updated_at')
             ->latest('updated_at')
             ->cursor();
 
@@ -71,7 +72,8 @@ class SitemapController extends Controller
 
     public function tags(): Response
     {
-        $tags = Tag::select('slug', 'updated_at')
+        $tags = Tag::whereHas('posts', fn ($query) => $query->published())
+            ->select('slug', 'updated_at')
             ->latest('updated_at')
             ->cursor();
 
