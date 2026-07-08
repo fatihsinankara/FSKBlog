@@ -11,7 +11,11 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        config(['session.driver' => 'array']);
+        config([
+            'session.driver' => 'array',
+            'services.turnstile.site_key' => null,
+            'services.turnstile.secret_key' => null,
+        ]);
 
         $this->withoutMiddleware(PreventRequestForgery::class);
     }

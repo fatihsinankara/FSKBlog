@@ -1,7 +1,9 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
+import AuthTextField from '@/Components/Auth/AuthTextField.vue';
 import TurnstileWidget from '@/Components/Shared/TurnstileWidget.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Lock, Mail, ShieldCheck, User } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const form = useForm({
@@ -28,85 +30,81 @@ const submit = () => {
     <AppLayout>
         <Head title="Kayıt Ol" />
 
-        <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
-            <div class="w-full max-w-sm">
-                <!-- Başlık -->
+        <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-16">
+            <div class="w-full max-w-md">
                 <div class="text-center mb-8">
+                    <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-900/60">
+                        <ShieldCheck :size="22" />
+                    </div>
                     <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">Kayıt Ol</h1>
-                    <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Yeni bir hesap oluşturun</p>
+                    <p class="mx-auto mt-2 max-w-sm text-sm leading-6 text-neutral-500 dark:text-neutral-400">
+                        Hesabını oluştur, e-posta doğrulamasını tamamla ve içerikleri kaydetmeye başla.
+                    </p>
                 </div>
 
-                <!-- Kart -->
-                <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-8">
+                <div class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm shadow-neutral-950/5 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-black/20 sm:p-9">
                     <form @submit.prevent="submit" class="space-y-5">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                                Ad Soyad
-                            </label>
-                            <input
-                                id="name"
-                                v-model="form.name"
-                                type="text"
-                                autocomplete="name"
-                                required
-                                autofocus
-                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                                :class="{ 'border-red-400 focus:ring-red-400': form.errors.name }"
-                                placeholder="Adınız Soyadınız"
-                            />
-                            <p v-if="form.errors.name" class="mt-1.5 text-xs text-red-500">{{ form.errors.name }}</p>
-                        </div>
+                        <AuthTextField
+                            id="name"
+                            v-model="form.name"
+                            label="Ad Soyad"
+                            autocomplete="name"
+                            placeholder="Adınız Soyadınız"
+                            required
+                            autofocus
+                            :error="form.errors.name"
+                        >
+                            <template #icon>
+                                <User :size="17" />
+                            </template>
+                        </AuthTextField>
 
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                                E-posta
-                            </label>
-                            <input
-                                id="email"
-                                v-model="form.email"
-                                type="email"
-                                autocomplete="username"
-                                required
-                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                                :class="{ 'border-red-400 focus:ring-red-400': form.errors.email }"
-                                placeholder="ornek@mail.com"
-                            />
-                            <p v-if="form.errors.email" class="mt-1.5 text-xs text-red-500">{{ form.errors.email }}</p>
-                        </div>
+                        <AuthTextField
+                            id="email"
+                            v-model="form.email"
+                            label="E-posta"
+                            type="email"
+                            autocomplete="username"
+                            placeholder="ornek@mail.com"
+                            required
+                            :error="form.errors.email"
+                        >
+                            <template #icon>
+                                <Mail :size="17" />
+                            </template>
+                        </AuthTextField>
 
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                                Şifre
-                            </label>
-                            <input
-                                id="password"
-                                v-model="form.password"
-                                type="password"
-                                autocomplete="new-password"
-                                required
-                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                                :class="{ 'border-red-400 focus:ring-red-400': form.errors.password }"
-                                placeholder="••••••••"
-                            />
-                            <p v-if="form.errors.password" class="mt-1.5 text-xs text-red-500">{{ form.errors.password }}</p>
-                        </div>
+                        <AuthTextField
+                            id="password"
+                            v-model="form.password"
+                            label="Şifre"
+                            type="password"
+                            autocomplete="new-password"
+                            placeholder="••••••••"
+                            required
+                            revealable
+                            :error="form.errors.password"
+                        >
+                            <template #icon>
+                                <Lock :size="17" />
+                            </template>
+                        </AuthTextField>
 
-                        <div>
-                            <label for="password_confirmation" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                                Şifre Tekrar
-                            </label>
-                            <input
-                                id="password_confirmation"
-                                v-model="form.password_confirmation"
-                                type="password"
-                                autocomplete="new-password"
-                                required
-                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                                :class="{ 'border-red-400 focus:ring-red-400': form.errors.password_confirmation }"
-                                placeholder="••••••••"
-                            />
-                            <p v-if="form.errors.password_confirmation" class="mt-1.5 text-xs text-red-500">{{ form.errors.password_confirmation }}</p>
-                        </div>
+                        <AuthTextField
+                            id="password_confirmation"
+                            v-model="form.password_confirmation"
+                            label="Şifre Tekrar"
+                            type="password"
+                            autocomplete="new-password"
+                            placeholder="••••••••"
+                            required
+                            revealable
+                            :error="form.errors.password_confirmation"
+                        >
+                            <template #icon>
+                                <Lock :size="17" />
+                            </template>
+                        </AuthTextField>
 
                         <TurnstileWidget
                             ref="turnstile"
@@ -118,14 +116,13 @@ const submit = () => {
                         <button
                             type="submit"
                             :disabled="form.processing"
-                            class="w-full py-2.5 px-4 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
+                            class="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {{ form.processing ? 'Hesap oluşturuluyor...' : 'Kayıt Ol' }}
                         </button>
                     </form>
                 </div>
 
-                <!-- Giriş yap linki -->
                 <p class="text-center text-sm text-neutral-500 dark:text-neutral-400 mt-5">
                     Zaten hesabınız var mı?
                     <Link :href="route('login')" class="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
