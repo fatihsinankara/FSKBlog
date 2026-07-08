@@ -88,7 +88,10 @@ class SiteSettingsTest extends TestCase
 
     public function test_custom_snippets_require_external_allowlisted_https_sources(): void
     {
-        config(['security.snippet_allowed_hosts' => ['www.googletagmanager.com']]);
+        config(['security.snippet_allowed_hosts' => [
+            'www.googletagmanager.com',
+            'pagead2.googlesyndication.com',
+        ]]);
 
         $admin = User::factory()->create([
             'is_admin' => true,
@@ -104,10 +107,13 @@ class SiteSettingsTest extends TestCase
             ->assertRedirect(route('admin.settings.edit'))
             ->assertSessionHasErrors(['custom_head_code', 'custom_body_end_code']);
 
+        $googleAnalyticsScript = '<script src="https://www.googletagmanager.com/gtag/js?id=G-TEST"></script>';
+        $adsenseScript = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1234567890123456" crossorigin="anonymous" data-ad-client="ca-pub-1234567890123456"></script>';
+
         $this->actingAs($admin)
             ->post(route('admin.settings.update'), [
                 'site_name' => 'Test',
-                'custom_head_code' => '<script src="https://www.googletagmanager.com/gtag/js?id=G-TEST"></script>',
+                'custom_head_code' => $googleAnalyticsScript.$adsenseScript,
                 'custom_body_end_code' => '<script src="https://www.googletagmanager.com/gtm.js?id=GTM-TEST"></script>',
             ])
             ->assertSessionDoesntHaveErrors()
